@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin â Karaoke Registrations</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --blue:#2563eb; --blue-dark:#1d4ed8; --red:#ef4444; --amber:#f59e0b; --green:#10b981; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#fff; min-height:100vh; font-family:'DM Sans',sans-serif; color:#1a1a1a; -webkit-font-smoothing:antialiased; }
+  .container { max-width:720px; margin:0 auto; padding:20px 16px 48px; }
+
+  /* PASSWORD GATE */
+  .gate { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .gate-box { width:100%; max-width:340px; text-align:center; }
+  .gate-icon { font-size:48px; margin-bottom:8px; }
+  .gate-title { font-family:'Playfair Display',serif; font-size:24px; font-weight:900; color:var(--blue); margin-bottom:6px; }
+  .gate-sub { font-size:13px; color:#6b7280; margin-bottom:24px; }
+  .pin-inputs { display:flex; gap:8px; justify-content:center; margin-bottom:18px; }
+  .pin-inputs input { width:44px; height:54px; text-align:center; font-size:22px; font-weight:700; font-family:'JetBrains Mono',monospace; border:1.5px solid #d1d5db; border-radius:10px; outline:none; color:var(--blue); -webkit-appearance:none; -moz-appearance:textfield; }
+  .pin-inputs input::-webkit-outer-spin-button,.pin-inputs input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .pin-inputs input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+  .pin-inputs input.error { border-color:var(--red); animation:shake 0.4s; }
+  .gate-error { color:var(--red); font-size:13px; min-height:18px; margin-bottom:12px; }
+  .gate-btn { width:100%; padding:13px; border-radius:10px; border:none; background:var(--blue); color:#fff; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; }
+  .gate-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  /* ADMIN */
+  .header { display:flex; align-items:center; justify-content:space-between; padding:20px 0 12px; border-bottom:1.5px solid var(--blue); margin-bottom:8px; }
+  .header h1 { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--blue); }
+  .header p { font-size:13px; color:#6b7280; margin-top:2px; }
+  .total-badge { background:rgba(37,99,235,0.06); border:1.5px solid var(--blue); border-radius:10px; padding:8px 14px; text-align:center; }
+  .total-num { font-size:24px; font-weight:700; color:var(--blue); font-family:'JetBrains Mono',monospace; }
+  .total-label { font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:1px; }
+  .logout-btn { background:none; border:none; color:#9ca3af; font-size:11px; cursor:pointer; margin-top:4px; font-family:'DM Sans',sans-serif; }
+  .logout-btn:hover { color:var(--red); }
+  .actions { display:flex; gap:8px; margin-top:14px; }
+  .action-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:12px 0; border-radius:10px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font-size:14px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; min-height:48px; -webkit-tap-highlight-color:transparent; }
+  .action-btn:active { background:rgba(37,99,235,0.05); }
+  .summary-bar { display:flex; gap:6px; margin:14px 0; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  .summary-bar::-webkit-scrollbar { display:none; }
+  .summary-chip { flex-shrink:0; padding:8px 12px; border-radius:8px; background:#fff; border:1.5px solid #d1d5db; text-align:center; min-width:80px; }
+  .summary-chip .time { color:#6b7280; font-weight:500; font-size:11px; }
+  .summary-chip .count { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; margin:2px 0; }
+  .summary-chip .count.teal { color:var(--green); }
+  .summary-chip .count.warn { color:var(--amber); }
+  .summary-chip .count.full { color:var(--red); }
+  .slot-section { margin-top:20px; }
+  .slot-header { display:flex; align-items:center; justify-content:space-between; padding:11px 14px; border-radius:12px 12px 0 0; background:rgba(37,99,235,0.05); border:1.5px solid var(--blue); border-bottom:none; }
+  .slot-title { font-weight:700; font-size:14px; color:var(--blue); }
+  .slot-actions { display:flex; align-items:center; gap:8px; }
+  .reorder-toggle { padding:4px 10px; border-radius:6px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font-size:11px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; min-height:28px; -webkit-tap-highlight-color:transparent; }
+  .reorder-toggle.active { background:var(--blue); color:#fff; }
+  .slot-badge { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; padding:3px 10px; border-radius:6px; background:#fff; border:1px solid #d1d5db; }
+  .table-wrap { border:1.5px solid var(--blue); border-top:none; border-radius:0 0 12px 12px; overflow:hidden; }
+  .entry-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #f3f4f6; transition:background 0.15s; }
+  .entry-row.reordering { background:#f8faff; }
+  .entry-row:last-child { border-bottom:none; }
+  .num { color:#9ca3af; font-family:'JetBrains Mono',monospace; font-size:12px; min-width:24px; }
+  .info { flex:1; min-width:0; }
+  .singer { font-weight:600; font-size:14px; color:#1a1a1a; }
+  .song { font-size:13px; color:#374151; }
+  .version { color:#9ca3af; font-size:12px; }
+  .row-actions { display:flex; gap:6px; flex-shrink:0; }
+  .icon-btn { width:36px; height:36px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0; -webkit-tap-highlight-color:transparent; }
+  .arrow-col { display:flex; flex-direction:column; gap:2px; margin-right:4px; }
+  .arrow-btn { width:28px; height:22px; border-radius:4px; border:1px solid #d1d5db; background:#fff; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center; padding:0; color:var(--blue); font-weight:700; -webkit-tap-highlight-color:transparent; }
+  .arrow-btn:disabled { opacity:0.2; cursor:not-allowed; }
+  .confirm-delete-btn { padding:6px 12px; border-radius:6px; border:1.5px solid var(--red); background:#fef2f2; color:var(--red); font-size:12px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; min-height:36px; }
+  .empty-slot { text-align:center; padding:20px; color:#9ca3af; font-size:13px; }
+  .edit-row { display:flex; flex-direction:column; gap:8px; padding:12px 14px; background:#f0f4ff; border-bottom:1px solid #dbeafe; }
+  .edit-input { width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid #93c5fd; background:#fff; color:#1a1a1a; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; }
+  .edit-buttons { display:flex; gap:8px; }
+  .save-btn { flex:1; padding:10px 0; border-radius:8px; border:none; background:var(--blue); color:#fff; font-size:13px; font-weight:700; cursor:pointer; min-height:44px; }
+  .cancel-btn { flex:1; padding:10px 0; border-radius:8px; border:1.5px solid #d1d5db; background:#fff; color:#6b7280; font-size:13px; font-weight:600; cursor:pointer; min-height:44px; }
+  .refresh-bar { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:24px; font-size:12px; color:#9ca3af; }
+  .live-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  .loader { text-align:center; padding:80px 0; color:#9ca3af; font-size:14px; }
+  .loader::after { content:''; display:block; width:28px; height:28px; margin:12px auto 0; border:2.5px solid #e5e7eb; border-top-color:var(--blue); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .toast { background:#ecfdf5; border:1.5px solid var(--green); border-radius:12px; padding:12px 16px; margin:12px 0; text-align:center; font-size:14px; color:#059669; }
+  .toast.error { background:#fef2f2; border-color:var(--red); color:var(--red); }
+  .toast.info { background:#eff6ff; border-color:var(--blue); color:var(--blue); }
+  .overlay-bg { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:flex-end; justify-content:center; }
+  .overlay-box { background:#fff; border-radius:20px 20px 0 0; padding:20px 18px 32px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; position:relative; }
+  .close-btn { position:absolute; top:14px; right:16px; width:32px; height:32px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; font-size:16px; cursor:pointer; color:#999; }
+  .overlay-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color:var(--blue); margin-bottom:4px; }
+  .csv-area { width:100%; height:200px; padding:12px; border-radius:10px; border:1.5px solid #d1d5db; background:#f9fafb; font-family:'JetBrains Mono',monospace; font-size:11px; color:#374151; resize:none; outline:none; }
+  .copy-btn { width:100%; padding:14px; border-radius:10px; border:none; background:var(--blue); color:#fff; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:12px; min-height:48px; }
+  @media print {
+    .header, .actions, .summary-bar, .refresh-bar, .row-actions, .reorder-toggle { display:none !important; }
+    .slot-header { background:#f0f0f0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <div class="gate-box">
+    <div class="gate-icon">ð</div>
+    <div class="gate-title">Admin Access</div>
+    <div class="gate-sub">Enter the 6-digit admin PIN</div>
+    <div class="pin-inputs" id="pinInputs">
+      <input type="tel" maxlength="1" pattern="[0-9]" inputmode="numeric">
+      <input type="tel" maxlength="1" pattern="[0-9]" inputmode="numeric">
+      <input type="tel" maxlength="1" pattern="[0-9]" inputmode="numeric">
+      <input type="tel" maxlength="1" pattern="[0-9]" inputmode="numeric">
+      <input type="tel" maxlength="1" pattern="[0-9]" inputmode="numeric">
+      <input type="tel" maxlength="1" pattern="[0-9]" inputmode="numeric">
+    </div>
+    <div class="gate-error" id="gateError"></div>
+    <button class="gate-btn" id="gateBtn" disabled>Unlock</button>
+  </div>
+</div>
+
+<div id="admin" class="container" style="display:none;">
+  <div class="header">
+    <div>
+      <h1>ð¤ Admin Panel</h1>
+      <p>Karaoke Night Registrations</p>
+      <button class="logout-btn" onclick="logout()">ð Logout</button>
+    </div>
+    <div class="total-badge">
+      <div class="total-num" id="totalCount">â</div>
+      <div class="total-label">Total</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="action-btn" onclick="openCSV()">ð¥ Export CSV</button>
+    <button class="action-btn" onclick="printA4()">ð¨ï¸ Print A4</button>
+  </div>
+
+  <div id="toast-area"></div>
+  <div class="summary-bar" id="summaryBar"></div>
+  <div id="loading" class="loader">Loading registrationsâ¦</div>
+  <div id="content" style="display:none;"></div>
+
+  <div class="refresh-bar">
+    <div class="live-dot"></div>
+    <span>Live updates â data syncs automatically</span>
+  </div>
+</div>
+
+<div id="csvOverlay" class="overlay-bg" style="display:none;" onclick="if(event.target===this)closeCSV()">
+  <div class="overlay-box">
+    <button class="close-btn" onclick="closeCSV()">â</button>
+    <h2 class="overlay-title">ð¥ CSV Export</h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">Copy and paste into Excel or Google Sheets.</p>
+    <textarea id="csvText" class="csv-area" readonly onfocus="this.select()"></textarea>
+    <button class="copy-btn" onclick="copyCSV()">ð Copy to Clipboard</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ============================================================
+// ð¥ FIREBASE CONFIG â REPLACE WITH YOUR VALUES
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAT0_CMGbLJQzc69R3w_OrBJ2vMHibpMEk",
+  authDomain: "karaoke-night-cbf11.firebaseapp.com",
+  projectId: "karaoke-night-cbf11",
+  storageBucket: "karaoke-night-cbf11.firebasestorage.app",
+  messagingSenderId: "157327705004",
+  appId: "1:157327705004:web:206a89f93ddfca7811b009"
+};
+
+// ============================================================
+// ð ADMIN PIN (6 digits)
+// ============================================================
+const ADMIN_PIN = "123456";
+// ============================================================
+
+const pinInputs = document.querySelectorAll("#pinInputs input");
+const gateBtn = document.getElementById("gateBtn");
+const gateError = document.getElementById("gateError");
+
+pinInputs.forEach((input, i) => {
+  input.addEventListener("input", (e) => {
+    e.target.value = e.target.value.replace(/\D/g, "");
+    if (e.target.value && i < pinInputs.length - 1) pinInputs[i + 1].focus();
+    checkPin();
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace" && !e.target.value && i > 0) pinInputs[i - 1].focus();
+    if (e.key === "Enter") tryUnlock();
+  });
+  input.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const digits = (e.clipboardData.getData("text") || "").replace(/\D/g, "").slice(0, 6);
+    digits.split("").forEach((d, j) => { if (pinInputs[j]) pinInputs[j].value = d; });
+    if (pinInputs[digits.length]) pinInputs[digits.length].focus();
+    checkPin();
+  });
+});
+
+function checkPin() {
+  const pin = Array.from(pinInputs).map(i => i.value).join("");
+  gateBtn.disabled = pin.length !== 6;
+  gateError.textContent = "";
+  pinInputs.forEach(i => i.classList.remove("error"));
+}
+
+function tryUnlock() {
+  const pin = Array.from(pinInputs).map(i => i.value).join("");
+  if (pin === ADMIN_PIN) {
+    sessionStorage.setItem("admin_unlocked", "1");
+    showAdmin();
+  } else {
+    pinInputs.forEach(i => i.classList.add("error"));
+    gateError.textContent = "Incorrect PIN. Try again.";
+    setTimeout(() => { pinInputs.forEach(i => i.value = ""); pinInputs[0].focus(); checkPin(); }, 500);
+  }
+}
+
+gateBtn.addEventListener("click", tryUnlock);
+
+function logout() {
+  sessionStorage.removeItem("admin_unlocked");
+  location.reload();
+}
+
+function showAdmin() {
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("admin").style.display = "block";
+  initAdmin();
+}
+
+if (sessionStorage.getItem("admin_unlocked") === "1") {
+  showAdmin();
+} else {
+  pinInputs[0].focus();
+}
+
+let db, allRegs = [];
+const COLLECTION = "registrations";
+const MAX = 24;
+const SLOTS = [
+  { id: "12-2",  label: "12:00 PM â 2:00 PM",  short: "12â2 PM" },
+  { id: "2-4",   label: "2:00 PM â 4:00 PM",    short: "2â4 PM" },
+  { id: "4-6",   label: "4:00 PM â 6:00 PM",    short: "4â6 PM" },
+  { id: "6-8",   label: "6:00 PM â 8:00 PM",    short: "6â8 PM" },
+  { id: "8-10",  label: "8:00 PM â 10:00 PM",   short: "8â10 PM" },
+];
+let editing = null, confirmDelete = null, reorderSlot = null;
+
+function initAdmin() {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  db.collection(COLLECTION).onSnapshot(snap => {
+    allRegs = [];
+    snap.forEach(doc => allRegs.push({ id: doc.id, ...doc.data() }));
+    render();
+  });
+}
+
+function getSlotEntries(slotId) {
+  return allRegs.filter(r => r.slot === slotId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+function render() {
+  const counts = {};
+  SLOTS.forEach(s => counts[s.id] = getSlotEntries(s.id).length);
+  document.getElementById("totalCount").textContent = allRegs.length;
+
+  document.getElementById("summaryBar").innerHTML = SLOTS.map(slot => {
+    const c = counts[slot.id];
+    const cls = c >= MAX ? "full" : c >= 20 ? "warn" : "teal";
+    return `<div class="summary-chip"><div class="time">${slot.short}</div><div class="count ${cls}">${c}/${MAX}</div></div>`;
+  }).join("");
+
+  document.getElementById("content").innerHTML = SLOTS.map(slot => {
+    const entries = getSlotEntries(slot.id);
+    const c = entries.length;
+    const badgeColor = c >= MAX ? "var(--red)" : c >= 20 ? "var(--amber)" : "var(--green)";
+    const isReordering = reorderSlot === slot.id;
+
+    let rows = "";
+    if (!entries.length) {
+      rows = `<div class="empty-slot">No registrations yet</div>`;
+    } else {
+      rows = entries.map((e, i) => {
+        if (editing === e.id) {
+          return `<div class="edit-row">
+            <input class="edit-input" id="edit-name-${e.id}" placeholder="Name" value="${esc(e.name)}">
+            <input class="edit-input" id="edit-song-${e.id}" placeholder="Song" value="${esc(e.song)}">
+            <input class="edit-input" id="edit-version-${e.id}" placeholder="Version" value="${esc(e.version || '')}">
+            <select class="edit-input" id="edit-slot-${e.id}" style="height:40px;">
+              ${SLOTS.map(sl => `<option value="${sl.id}" ${sl.id === e.slot ? 'selected' : ''}>${sl.label}</option>`).join("")}
+            </select>
+            <div class="edit-buttons">
+              <button class="save-btn" onclick="saveEdit('${e.id}')">Save</button>
+              <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            </div>
+          </div>`;
+        }
+        const arrows = isReordering ? `<div class="arrow-col">
+          <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},-1)" ${i === 0 ? 'disabled' : ''}>â²</button>
+          <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},1)" ${i === entries.length - 1 ? 'disabled' : ''}>â¼</button>
+        </div>` : '';
+        const actions = !isReordering ? `<div class="row-actions">
+          <button class="icon-btn" onclick="startEdit('${e.id}')">âï¸</button>
+          ${confirmDelete === e.id
+            ? `<button class="confirm-delete-btn" onclick="deleteEntry('${e.id}')">Delete?</button>`
+            : `<button class="icon-btn" onclick="askDelete('${e.id}')">ðï¸</button>`}
+        </div>` : '';
+        return `<div class="entry-row${isReordering ? ' reordering' : ''}">
+          ${arrows}
+          <span class="num">${i + 1}</span>
+          <div class="info">
+            <div class="singer">${esc(e.name)}</div>
+            <div class="song">${esc(e.song)}${e.version ? `<span class="version"> (${esc(e.version)})</span>` : ''}</div>
+          </div>
+          ${actions}
+        </div>`;
+      }).join("");
+    }
+
+    return `<div class="slot-section">
+      <div class="slot-header">
+        <span class="slot-title">${slot.label}</span>
+        <div class="slot-actions">
+          ${entries.length > 1 ? `<button class="reorder-toggle ${isReordering ? 'active' : ''}" onclick="toggleReorder('${slot.id}')">${isReordering ? 'â Done' : 'â Reorder'}</button>` : ''}
+          <span class="slot-badge" style="color:${badgeColor}">${c}/${MAX}</span>
+        </div>
+      </div>
+      <div class="table-wrap">${rows}</div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("content").style.display = "block";
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+
+function startEdit(id) { editing = id; confirmDelete = null; reorderSlot = null; render(); }
+function cancelEdit() { editing = null; render(); }
+
+async function saveEdit(id) {
+  const name = document.getElementById(`edit-name-${id}`).value.trim();
+  const song = document.getElementById(`edit-song-${id}`).value.trim();
+  const version = document.getElementById(`edit-version-${id}`).value.trim();
+  const slot = document.getElementById(`edit-slot-${id}`).value;
+  if (!name || !song || !slot) return;
+  try {
+    await db.collection(COLLECTION).doc(id).update({ name, song, version, slot });
+    editing = null;
+    showToast("âï¸ Entry updated!", "info");
+  } catch (err) { showToast("Failed to update", "error"); }
+}
+
+function askDelete(id) { confirmDelete = id; editing = null; render(); }
+async function deleteEntry(id) {
+  try {
+    await db.collection(COLLECTION).doc(id).delete();
+    confirmDelete = null;
+    showToast("ðï¸ Entry deleted!", "error");
+  } catch (err) { showToast("Failed to delete", "error"); }
+}
+
+function toggleReorder(slotId) { reorderSlot = reorderSlot === slotId ? null : slotId; editing = null; confirmDelete = null; render(); }
+
+async function moveEntry(slotId, fromIdx, dir) {
+  const entries = getSlotEntries(slotId);
+  const toIdx = fromIdx + dir;
+  if (toIdx < 0 || toIdx >= entries.length) return;
+  const a = entries[fromIdx], b = entries[toIdx];
+  const aOrder = a.order ?? 0, bOrder = b.order ?? 0;
+  try {
+    const batch = db.batch();
+    batch.update(db.collection(COLLECTION).doc(a.id), { order: bOrder });
+    batch.update(db.collection(COLLECTION).doc(b.id), { order: aOrder });
+    await batch.commit();
+  } catch (err) { showToast("Failed to reorder", "error"); }
+}
+
+function showToast(msg, type) {
+  const area = document.getElementById("toast-area");
+  area.innerHTML = `<div class="toast ${type || ''}">${msg}</div>`;
+  setTimeout(() => area.innerHTML = "", 2500);
+}
+
+function buildCSV() {
+  const lines = ["Time Slot,#,Name,Song,Version"];
+  SLOTS.forEach(slot => {
+    getSlotEntries(slot.id).forEach((e, i) => {
+      const q = (v) => `"${(v || "").replace(/"/g, '""')}"`;
+      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.song)},${q(e.version)}`);
+    });
+  });
+  return "\uFEFF" + lines.join("\n");
+}
+
+function openCSV() {
+  document.getElementById("csvText").value = buildCSV();
+  document.getElementById("csvOverlay").style.display = "flex";
+}
+function closeCSV() { document.getElementById("csvOverlay").style.display = "none"; }
+async function copyCSV() {
+  try { await navigator.clipboard.writeText(buildCSV()); showToast("ð Copied!", "info"); closeCSV(); }
+  catch { showToast("Copy failed â please select manually", "error"); }
+}
+
+function printA4() {
+  const counts = {};
+  SLOTS.forEach(s => counts[s.id] = getSlotEntries(s.id).length);
+  const w = window.open("", "_blank");
+  if (!w) { showToast("Please allow popups for printing", "error"); return; }
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Karaoke Registrations</title><style>
+@page{size:A4;margin:18mm 15mm}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'Segoe UI',sans-serif;color:#111;font-size:11px;line-height:1.4}
+.h{text-align:center;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid #2563eb}
+.h h1{font-size:22px;color:#2563eb;margin-bottom:2px}.h p{font-size:12px;color:#666}
+.cs{display:flex;gap:6px;margin-bottom:16px;justify-content:center;flex-wrap:wrap}
+.c{padding:5px 12px;border:1px solid #ccc;border-radius:4px;text-align:center;font-size:10px}
+.c .v{font-size:14px;font-weight:700;color:#2563eb}
+.s{margin-bottom:12px;page-break-inside:avoid}
+.st{background:#eef4ff;padding:7px 12px;font-weight:700;font-size:12px;color:#2563eb;border:1px solid #2563eb;border-bottom:none;border-radius:6px 6px 0 0;display:flex;justify-content:space-between}
+table{width:100%;border-collapse:collapse;border:1px solid #2563eb}
+th{background:#f8fafc;text-align:left;padding:5px 10px;font-size:10px;text-transform:uppercase;color:#666;border-bottom:1px solid #ddd}
+td{padding:5px 10px;border-bottom:1px solid #eee;font-size:11px}tr:last-child td{border-bottom:none}
+.n{color:#999;width:24px}.em{text-align:center;padding:12px;color:#bbb;font-style:italic}
+.f{text-align:center;margin-top:18px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
+</style></head><body>`;
+  html += `<div class="h"><h1>ð¤ Charity Karaoke Night</h1><p>Registration List Â· Total: ${allRegs.length} singers</p></div>`;
+  html += `<div class="cs">`;
+  SLOTS.forEach(sl => { html += `<div class="c"><div style="color:#888">${sl.short}</div><div class="v">${counts[sl.id]}/${MAX}</div></div>`; });
+  html += `</div>`;
+  SLOTS.forEach(slot => {
+    const entries = getSlotEntries(slot.id);
+    html += `<div class="s"><div class="st"><span>${slot.label}</span><span>${entries.length}/${MAX}</span></div><table><thead><tr><th style="width:24px">#</th><th>Name</th><th>Song</th><th>Version</th></tr></thead><tbody>`;
+    if (!entries.length) html += `<tr><td colspan="4" class="em">No registrations</td></tr>`;
+    else entries.forEach((e, i) => { html += `<tr><td class="n">${i + 1}</td><td>${esc(e.name)}</td><td>${esc(e.song)}</td><td>${esc(e.version)}</td></tr>`; });
+    html += `</tbody></table></div>`;
+  });
+  html += `<div class="f">Generated ${new Date().toLocaleString("en-MY")}</div></body></html>`;
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 300);
+}
+</script>
+</body>
+</html>
