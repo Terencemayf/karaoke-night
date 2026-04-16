@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin â Karaoke Registrations</title>
+<title>Admin – Karaoke Registrations</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root { --blue:#2563eb; --blue-dark:#1d4ed8; --red:#ef4444; --amber:#f59e0b; --green:#10b981; }
@@ -100,7 +100,7 @@
 
 <div id="gate" class="gate">
   <div class="gate-box">
-    <div class="gate-icon">ð</div>
+    <div class="gate-icon">🔒</div>
     <div class="gate-title">Admin Access</div>
     <div class="gate-sub">Enter the 6-digit admin PIN</div>
     <div class="pin-inputs" id="pinInputs">
@@ -119,39 +119,39 @@
 <div id="admin" class="container" style="display:none;">
   <div class="header">
     <div>
-      <h1>ð¤ Admin Panel</h1>
+      <h1>🎤 Admin Panel</h1>
       <p>Karaoke Night Registrations</p>
-      <button class="logout-btn" onclick="logout()">ð Logout</button>
+      <button class="logout-btn" onclick="logout()">🔓 Logout</button>
     </div>
     <div class="total-badge">
-      <div class="total-num" id="totalCount">â</div>
+      <div class="total-num" id="totalCount">–</div>
       <div class="total-label">Total</div>
     </div>
   </div>
 
   <div class="actions">
-    <button class="action-btn" onclick="openCSV()">ð¥ Export CSV</button>
-    <button class="action-btn" onclick="printA4()">ð¨ï¸ Print A4</button>
+    <button class="action-btn" onclick="openCSV()">📥 Export CSV</button>
+    <button class="action-btn" onclick="printA4()">🖨️ Print A4</button>
   </div>
 
   <div id="toast-area"></div>
   <div class="summary-bar" id="summaryBar"></div>
-  <div id="loading" class="loader">Loading registrationsâ¦</div>
+  <div id="loading" class="loader">Loading registrations…</div>
   <div id="content" style="display:none;"></div>
 
   <div class="refresh-bar">
     <div class="live-dot"></div>
-    <span>Live updates â data syncs automatically</span>
+    <span>Live updates — data syncs automatically</span>
   </div>
 </div>
 
 <div id="csvOverlay" class="overlay-bg" style="display:none;" onclick="if(event.target===this)closeCSV()">
   <div class="overlay-box">
-    <button class="close-btn" onclick="closeCSV()">â</button>
-    <h2 class="overlay-title">ð¥ CSV Export</h2>
+    <button class="close-btn" onclick="closeCSV()">✕</button>
+    <h2 class="overlay-title">📥 CSV Export</h2>
     <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">Copy and paste into Excel or Google Sheets.</p>
     <textarea id="csvText" class="csv-area" readonly onfocus="this.select()"></textarea>
-    <button class="copy-btn" onclick="copyCSV()">ð Copy to Clipboard</button>
+    <button class="copy-btn" onclick="copyCSV()">📋 Copy to Clipboard</button>
   </div>
 </div>
 
@@ -160,7 +160,7 @@
 
 <script>
 // ============================================================
-// ð¥ FIREBASE CONFIG â REPLACE WITH YOUR VALUES
+// 🔥 FIREBASE CONFIG — REPLACE WITH YOUR VALUES
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAT0_CMGbLJQzc69R3w_OrBJ2vMHibpMEk",
@@ -172,7 +172,7 @@ const firebaseConfig = {
 };
 
 // ============================================================
-// ð ADMIN PIN (6 digits)
+// 🔐 ADMIN PIN (6 digits)
 // ============================================================
 const ADMIN_PIN = "123456";
 // ============================================================
@@ -183,7 +183,7 @@ const gateError = document.getElementById("gateError");
 
 pinInputs.forEach((input, i) => {
   input.addEventListener("input", (e) => {
-    e.target.value = e.target.value.replace(/\D/g, "");
+    e.target.value = e.target.value.replace(/\\D/g, "");
     if (e.target.value && i < pinInputs.length - 1) pinInputs[i + 1].focus();
     checkPin();
   });
@@ -242,11 +242,11 @@ let db, allRegs = [];
 const COLLECTION = "registrations";
 const MAX = 24;
 const SLOTS = [
-  { id: "12-2",  label: "12:00 PM â 2:00 PM",  short: "12â2 PM" },
-  { id: "2-4",   label: "2:00 PM â 4:00 PM",    short: "2â4 PM" },
-  { id: "4-6",   label: "4:00 PM â 6:00 PM",    short: "4â6 PM" },
-  { id: "6-8",   label: "6:00 PM â 8:00 PM",    short: "6â8 PM" },
-  { id: "8-10",  label: "8:00 PM â 10:00 PM",   short: "8â10 PM" },
+  { id: "12-2",  label: "12:00 PM – 2:00 PM",  short: "12–2 PM" },
+  { id: "2-4",   label: "2:00 PM – 4:00 PM",    short: "2–4 PM" },
+  { id: "4-6",   label: "4:00 PM – 6:00 PM",    short: "4–6 PM" },
+  { id: "6-8",   label: "6:00 PM – 8:00 PM",    short: "6–8 PM" },
+  { id: "8-10",  label: "8:00 PM – 10:00 PM",   short: "8–10 PM" },
 ];
 let editing = null, confirmDelete = null, reorderSlot = null;
 
@@ -301,14 +301,14 @@ function render() {
           </div>`;
         }
         const arrows = isReordering ? `<div class="arrow-col">
-          <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},-1)" ${i === 0 ? 'disabled' : ''}>â²</button>
-          <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},1)" ${i === entries.length - 1 ? 'disabled' : ''}>â¼</button>
+          <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},-1)" ${i === 0 ? 'disabled' : ''}>▲</button>
+          <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},1)" ${i === entries.length - 1 ? 'disabled' : ''}>▼</button>
         </div>` : '';
         const actions = !isReordering ? `<div class="row-actions">
-          <button class="icon-btn" onclick="startEdit('${e.id}')">âï¸</button>
+          <button class="icon-btn" onclick="startEdit('${e.id}')">✏️</button>
           ${confirmDelete === e.id
             ? `<button class="confirm-delete-btn" onclick="deleteEntry('${e.id}')">Delete?</button>`
-            : `<button class="icon-btn" onclick="askDelete('${e.id}')">ðï¸</button>`}
+            : `<button class="icon-btn" onclick="askDelete('${e.id}')">🗑️</button>`}
         </div>` : '';
         return `<div class="entry-row${isReordering ? ' reordering' : ''}">
           ${arrows}
@@ -326,7 +326,7 @@ function render() {
       <div class="slot-header">
         <span class="slot-title">${slot.label}</span>
         <div class="slot-actions">
-          ${entries.length > 1 ? `<button class="reorder-toggle ${isReordering ? 'active' : ''}" onclick="toggleReorder('${slot.id}')">${isReordering ? 'â Done' : 'â Reorder'}</button>` : ''}
+          ${entries.length > 1 ? `<button class="reorder-toggle ${isReordering ? 'active' : ''}" onclick="toggleReorder('${slot.id}')">${isReordering ? '✓ Done' : '↕ Reorder'}</button>` : ''}
           <span class="slot-badge" style="color:${badgeColor}">${c}/${MAX}</span>
         </div>
       </div>
@@ -352,7 +352,7 @@ async function saveEdit(id) {
   try {
     await db.collection(COLLECTION).doc(id).update({ name, song, version, slot });
     editing = null;
-    showToast("âï¸ Entry updated!", "info");
+    showToast("✏️ Entry updated!", "info");
   } catch (err) { showToast("Failed to update", "error"); }
 }
 
@@ -361,7 +361,7 @@ async function deleteEntry(id) {
   try {
     await db.collection(COLLECTION).doc(id).delete();
     confirmDelete = null;
-    showToast("ðï¸ Entry deleted!", "error");
+    showToast("🗑️ Entry deleted!", "error");
   } catch (err) { showToast("Failed to delete", "error"); }
 }
 
@@ -404,8 +404,8 @@ function openCSV() {
 }
 function closeCSV() { document.getElementById("csvOverlay").style.display = "none"; }
 async function copyCSV() {
-  try { await navigator.clipboard.writeText(buildCSV()); showToast("ð Copied!", "info"); closeCSV(); }
-  catch { showToast("Copy failed â please select manually", "error"); }
+  try { await navigator.clipboard.writeText(buildCSV()); showToast("📋 Copied!", "info"); closeCSV(); }
+  catch { showToast("Copy failed — please select manually", "error"); }
 }
 
 function printA4() {
@@ -428,7 +428,7 @@ td{padding:5px 10px;border-bottom:1px solid #eee;font-size:11px}tr:last-child td
 .n{color:#999;width:24px}.em{text-align:center;padding:12px;color:#bbb;font-style:italic}
 .f{text-align:center;margin-top:18px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
 </style></head><body>`;
-  html += `<div class="h"><h1>ð¤ Charity Karaoke Night</h1><p>Registration List Â· Total: ${allRegs.length} singers</p></div>`;
+  html += `<div class="h"><h1>🎤 Charity Karaoke Night</h1><p>Registration List · Total: ${allRegs.length} singers</p></div>`;
   html += `<div class="cs">`;
   SLOTS.forEach(sl => { html += `<div class="c"><div style="color:#888">${sl.short}</div><div class="v">${counts[sl.id]}/${MAX}</div></div>`; });
   html += `</div>`;
