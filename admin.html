@@ -226,7 +226,29 @@ function logout() {
   location.reload();
 }
 
+const COLLECTION = "registrations";
+const MAX = 24;
+const SLOTS = [
+  { id: "12-2",  label: "12:00 PM – 2:00 PM",  short: "12–2 PM" },
+  { id: "2-4",   label: "2:00 PM – 4:00 PM",    short: "2–4 PM" },
+  { id: "4-6",   label: "4:00 PM – 6:00 PM",    short: "4–6 PM" },
+  { id: "6-8",   label: "6:00 PM – 8:00 PM",    short: "6–8 PM" },
+  { id: "8-10",  label: "8:00 PM – 10:00 PM",   short: "8–10 PM" },
+];
 let db, allRegs = [];
+let editing = null, confirmDelete = null, reorderSlot = null;
+
+function initAdmin() {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  db = firebase.firestore();
+  db.collection(COLLECTION).onSnapshot(snap => {
+    allRegs = [];
+    snap.forEach(doc => allRegs.push({ id: doc.id, ...doc.data() }));
+    render();
+  });
+}
 
 function showAdmin() {
   document.getElementById("gate").style.display = "none";
@@ -238,27 +260,6 @@ if (sessionStorage.getItem("admin_unlocked") === "1") {
   showAdmin();
 } else {
   pinInputs[0].focus();
-}
-
-const COLLECTION = "registrations";
-const MAX = 24;
-const SLOTS = [
-  { id: "12-2",  label: "12:00 PM – 2:00 PM",  short: "12–2 PM" },
-  { id: "2-4",   label: "2:00 PM – 4:00 PM",    short: "2–4 PM" },
-  { id: "4-6",   label: "4:00 PM – 6:00 PM",    short: "4–6 PM" },
-  { id: "6-8",   label: "6:00 PM – 8:00 PM",    short: "6–8 PM" },
-  { id: "8-10",  label: "8:00 PM – 10:00 PM",   short: "8–10 PM" },
-];
-let editing = null, confirmDelete = null, reorderSlot = null;
-
-function initAdmin() {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-  db.collection(COLLECTION).onSnapshot(snap => {
-    allRegs = [];
-    snap.forEach(doc => allRegs.push({ id: doc.id, ...doc.data() }));
-    render();
-  });
 }
 
 function getSlotEntries(slotId) {
