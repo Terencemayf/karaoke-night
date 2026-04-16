@@ -226,6 +226,8 @@ function logout() {
   location.reload();
 }
 
+let db, allRegs = [];
+
 function showAdmin() {
   document.getElementById("gate").style.display = "none";
   document.getElementById("admin").style.display = "block";
@@ -238,7 +240,6 @@ if (sessionStorage.getItem("admin_unlocked") === "1") {
   pinInputs[0].focus();
 }
 
-let db, allRegs = [];
 const COLLECTION = "registrations";
 const MAX = 24;
 const SLOTS = [
