@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Charity Karaoke Night ð¤</title>
+<title>Charity Karaoke Night 🎤</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { --blue:#2563eb; --blue-dark:#1d4ed8; --red:#ef4444; --amber:#f59e0b; --green:#10b981; }
@@ -48,12 +48,12 @@
 
 <div class="container">
   <div class="header">
-    <div class="mic">ð¤</div>
+    <div class="mic">🎤</div>
     <h1>Charity Karaoke Night</h1>
     <p class="subtitle">Sign up to sing & raise funds!</p>
   </div>
 
-  <div id="loading" class="loader">Loading slotsâ¦</div>
+  <div id="loading" class="loader">Loading slots…</div>
 
   <div id="app" style="display:none;">
     <div id="toast-area"></div>
@@ -66,11 +66,11 @@
       <input type="text" id="version" placeholder="e.g. Acoustic, Original, Live">
       <label>Time Slot <span class="req">*</span></label>
       <div class="slots" id="slots"></div>
-      <button class="submit-btn" id="submitBtn" disabled>ð¶ Register to Sing</button>
+      <button class="submit-btn" id="submitBtn" disabled>🎶 Register to Sing</button>
     </div>
   </div>
 
-  <p class="footer">All proceeds go to charity ð</p>
+  <p class="footer">All proceeds go to charity 💛</p>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -78,7 +78,7 @@
 
 <script>
 // ============================================================
-// ð¥ FIREBASE CONFIG â REPLACE WITH YOUR VALUES
+// 🔥 FIREBASE CONFIG — REPLACE WITH YOUR VALUES
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAT0_CMGbLJQzc69R3w_OrBJ2vMHibpMEk",
@@ -96,11 +96,11 @@ const COLLECTION = "registrations";
 const MAX_PER_SLOT = 24;
 
 const SLOTS = [
-  { id: "12-2",  label: "12:00 PM â 2:00 PM" },
-  { id: "2-4",   label: "2:00 PM â 4:00 PM" },
-  { id: "4-6",   label: "4:00 PM â 6:00 PM" },
-  { id: "6-8",   label: "6:00 PM â 8:00 PM" },
-  { id: "8-10",  label: "8:00 PM â 10:00 PM" },
+  { id: "12-2",  label: "12:00 PM – 2:00 PM" },
+  { id: "2-4",   label: "2:00 PM – 4:00 PM" },
+  { id: "4-6",   label: "4:00 PM – 6:00 PM" },
+  { id: "6-8",   label: "6:00 PM – 8:00 PM" },
+  { id: "8-10",  label: "8:00 PM – 10:00 PM" },
 ];
 
 let selectedSlot = null;
@@ -151,7 +151,7 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     showToast("This slot just filled up! Please pick another.", true);
     selectedSlot = null; renderSlots(); return;
   }
-  btn.disabled = true; btn.textContent = "Submittingâ¦";
+  btn.disabled = true; btn.textContent = "Submitting…";
   try {
     const slotSnap = await db.collection(COLLECTION).where("slot", "==", selectedSlot).get();
     let maxOrder = -1;
@@ -161,7 +161,7 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
       order: maxOrder + 1,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showToast("â You're registered! See you on stage!");
+    showToast("✅ You're registered! See you on stage!");
     document.getElementById("name").value = "";
     document.getElementById("song").value = "";
     document.getElementById("version").value = "";
@@ -170,7 +170,7 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     showToast("Something went wrong. Please try again.", true);
     console.error(err);
   }
-  btn.textContent = "ð¶ Register to Sing"; btn.disabled = true;
+  btn.textContent = "🎶 Register to Sing"; btn.disabled = true;
 });
 
 function showToast(msg, isError) {
