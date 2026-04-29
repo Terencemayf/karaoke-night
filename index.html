@@ -37,6 +37,24 @@
   .submit-btn:disabled { opacity:0.35; cursor:not-allowed; }
   .toast { background:#ecfdf5; border:1.5px solid var(--green); border-radius:12px; padding:12px 16px; margin-top:16px; text-align:center; font-size:14px; color:#059669; animation:fadeIn 0.3s ease; }
   .toast.error { background:#fef2f2; border-color:var(--red); color:var(--red); }
+  .success-screen { display:none; }
+  .success-card { background:#fff; border-radius:16px; padding:24px 18px; margin-top:20px; border:1.5px solid var(--green); box-shadow:0 2px 12px rgba(16,185,129,0.1); text-align:center; }
+  .success-icon { font-size:48px; margin-bottom:8px; }
+  .success-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--green); margin-bottom:6px; }
+  .success-sub { font-size:14px; color:#6b7280; margin-bottom:16px; }
+  .detail-box { background:#f9fafb; border-radius:12px; padding:14px 16px; text-align:left; margin-bottom:16px; border:1px solid #e5e7eb; }
+  .detail-row { display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-bottom:1px solid #f3f4f6; }
+  .detail-row:last-child { border-bottom:none; }
+  .detail-label { color:#6b7280; font-weight:500; }
+  .detail-value { color:#1a1a1a; font-weight:600; text-align:right; max-width:60%; }
+  .payment-card { background:#fffbeb; border-radius:12px; padding:16px; margin-bottom:16px; border:1.5px solid var(--amber); text-align:left; }
+  .payment-title { font-weight:700; font-size:15px; color:#92400e; margin-bottom:10px; }
+  .bank-info { font-size:13px; color:#1a1a1a; line-height:1.8; }
+  .bank-info strong { display:inline-block; min-width:70px; color:#6b7280; font-weight:500; }
+  .bank-value { font-family:'JetBrains Mono',monospace; font-weight:600; letter-spacing:0.5px; }
+  .copy-acct-btn { display:inline-flex; align-items:center; gap:4px; margin-top:8px; padding:6px 12px; border-radius:6px; border:1px solid var(--amber); background:#fff; color:#92400e; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .charity-note { background:#eff6ff; border-radius:10px; padding:12px 14px; font-size:13px; color:#1e40af; margin-bottom:16px; line-height:1.5; }
+  .new-reg-btn { width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; }
   .footer { text-align:center; font-size:12px; color:#9ca3af; margin-top:28px; }
   .loader { text-align:center; padding:60px 0; color:#9ca3af; }
   .loader::after { content:''; display:block; width:28px; height:28px; margin:12px auto 0; border:2.5px solid #e5e7eb; border-top-color:var(--blue); border-radius:50%; animation:spin 0.7s linear infinite; }
@@ -70,6 +88,33 @@
       <div class="slots" id="slots"></div>
       <button class="submit-btn" id="submitBtn" disabled>🎶 Register to Sing</button>
     </div>
+  </div>
+
+  <div id="success" class="success-screen">
+    <div class="success-card">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Registration Received!</div>
+      <div class="success-sub">Thank you for signing up for Karathon 2026</div>
+    </div>
+
+    <div class="detail-box" id="regDetails"></div>
+
+    <div class="charity-note">
+      💛 Karathon 2026 is a <strong>charity fundraiser</strong> for Diabetes Malaysia Cawangan Negeri Sarawak. Your participation helps make a difference!
+    </div>
+
+    <div class="payment-card">
+      <div class="payment-title">💳 Payment Details</div>
+      <div style="font-size:13px; color:#78350f; margin-bottom:10px;">Please transfer your participation fee to the account below. Our admin will confirm your registration via WhatsApp.</div>
+      <div class="bank-info">
+        <strong>Name:</strong> DIABETES MALAYSIA CAWANGAN NEGERI SARAWAK<br>
+        <strong>Bank:</strong> HONG LEONG BANK<br>
+        <strong>A/C No:</strong> <span class="bank-value">01600203512</span>
+      </div>
+      <button class="copy-acct-btn" onclick="copyAccount()">📋 Copy Account Number</button>
+    </div>
+
+    <button class="new-reg-btn" onclick="resetForm()">🎤 Register Another Singer</button>
   </div>
 
   <p class="footer">All proceeds go to charity 💛</p>
@@ -161,17 +206,25 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     const slotSnap = await db.collection(COLLECTION).where("slot", "==", selectedSlot).get();
     let maxOrder = -1;
     slotSnap.forEach(d => { const o = d.data().order; if (typeof o === "number" && o > maxOrder) maxOrder = o; });
+    const slotLabel = SLOTS.find(s => s.id === selectedSlot).label;
     await db.collection(COLLECTION).add({
       name, phone, song, version, slot: selectedSlot,
       order: maxOrder + 1,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showToast("✅ You're registered! See you on stage!");
+    // Show success screen with payment info
+    document.getElementById("regDetails").innerHTML =
+      `<div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${esc(name)}</span></div>` +
+      `<div class="detail-row"><span class="detail-label">Telephone</span><span class="detail-value">${esc(phone)}</span></div>` +
+      `<div class="detail-row"><span class="detail-label">Song</span><span class="detail-value">${esc(song)}${version ? ' (' + esc(version) + ')' : ''}</span></div>` +
+      `<div class="detail-row"><span class="detail-label">Time Slot</span><span class="detail-value">${slotLabel}</span></div>`;
+    document.getElementById("app").style.display = "none";
+    document.getElementById("success").style.display = "block";
     document.getElementById("name").value = "";
     document.getElementById("phone").value = "";
     document.getElementById("song").value = "";
     document.getElementById("version").value = "";
-    selectedSlot = null; renderSlots();
+    selectedSlot = null;
   } catch (err) {
     showToast("Something went wrong. Please try again.", true);
     console.error(err);
@@ -183,6 +236,20 @@ function showToast(msg, isError) {
   const area = document.getElementById("toast-area");
   area.innerHTML = `<div class="toast${isError ? ' error' : ''}">${msg}</div>`;
   setTimeout(() => { area.innerHTML = ""; }, 4000);
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+
+function copyAccount() {
+  navigator.clipboard.writeText("01600203512").then(() => {
+    showToast("📋 Account number copied!");
+  }).catch(() => {});
+}
+
+function resetForm() {
+  document.getElementById("success").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  renderSlots();
 }
 
 listenToSlots();

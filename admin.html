@@ -385,11 +385,16 @@ function sendWhatsApp(docId, phone, name, song, version, slotLabel) {
 
   const msg = `Hi ${name}! 👋\n\n` +
     `Thank you for registering for *Karathon 2026* 🎤🎶\n\n` +
-    `Here are your registration details:\n` +
+    `Your registration is confirmed! Here are your details:\n` +
     `📛 Name: ${name}\n` +
     `🎵 Song: ${song}${version ? ' (' + version + ')' : ''}\n` +
     `🕐 Time Slot: ${slotLabel}\n\n` +
-    `We look forward to seeing you! 🎉`;
+    `💳 *Payment Details*\n` +
+    `Please transfer your participation fee to:\n` +
+    `Bank: *HONG LEONG BANK*\n` +
+    `Name: *DIABETES MALAYSIA CAWANGAN NEGERI SARAWAK*\n` +
+    `A/C No: *01600203512*\n\n` +
+    `Once payment is done, kindly send your receipt to this number. Thank you! 🎉`;
 
   const waUrl = `https://wa.me/${cleaned}?text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
