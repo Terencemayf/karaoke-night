@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Charity Karaoke Night 🎤</title>
+<title>Karathon 2026 🎤</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { --blue:#2563eb; --blue-dark:#1d4ed8; --red:#ef4444; --amber:#f59e0b; --green:#10b981; }
@@ -49,7 +49,7 @@
 <div class="container">
   <div class="header">
     <div class="mic">🎤</div>
-    <h1>Charity Karaoke Night</h1>
+    <h1>Karathon 2026</h1>
     <p class="subtitle">Sign up to sing & raise funds!</p>
   </div>
 
@@ -60,6 +60,8 @@
     <div class="card">
       <label>Your Name <span class="req">*</span></label>
       <input type="text" id="name" placeholder="e.g. John Doe" autocomplete="name">
+      <label>Telephone Contact <span class="req">*</span></label>
+      <input type="text" id="phone" placeholder="e.g. 012-345 6789" autocomplete="tel">
       <label>Title of Song <span class="req">*</span></label>
       <input type="text" id="song" placeholder="e.g. Bohemian Rhapsody">
       <label>Version of Song</label>
@@ -135,18 +137,21 @@ function renderSlots() {
 
 function checkForm() {
   const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
   const song = document.getElementById("song").value.trim();
-  document.getElementById("submitBtn").disabled = !(name && song && selectedSlot);
+  document.getElementById("submitBtn").disabled = !(name && phone && song && selectedSlot);
 }
 document.getElementById("name").addEventListener("input", checkForm);
+document.getElementById("phone").addEventListener("input", checkForm);
 document.getElementById("song").addEventListener("input", checkForm);
 
 document.getElementById("submitBtn").addEventListener("click", async () => {
   const btn = document.getElementById("submitBtn");
   const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
   const song = document.getElementById("song").value.trim();
   const version = document.getElementById("version").value.trim();
-  if (!name || !song || !selectedSlot) return;
+  if (!name || !phone || !song || !selectedSlot) return;
   if ((slotCounts[selectedSlot] || 0) >= MAX_PER_SLOT) {
     showToast("This slot just filled up! Please pick another.", true);
     selectedSlot = null; renderSlots(); return;
@@ -157,12 +162,13 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     let maxOrder = -1;
     slotSnap.forEach(d => { const o = d.data().order; if (typeof o === "number" && o > maxOrder) maxOrder = o; });
     await db.collection(COLLECTION).add({
-      name, song, version, slot: selectedSlot,
+      name, phone, song, version, slot: selectedSlot,
       order: maxOrder + 1,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showToast("✅ You're registered! See you on stage!");
     document.getElementById("name").value = "";
+    document.getElementById("phone").value = "";
     document.getElementById("song").value = "";
     document.getElementById("version").value = "";
     selectedSlot = null; renderSlots();

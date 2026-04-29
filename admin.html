@@ -61,6 +61,7 @@
   .num { color:#9ca3af; font-family:'JetBrains Mono',monospace; font-size:12px; min-width:24px; }
   .info { flex:1; min-width:0; }
   .singer { font-weight:600; font-size:14px; color:#1a1a1a; }
+  .phone { font-size:12px; color:#6b7280; }
   .song { font-size:13px; color:#374151; }
   .version { color:#9ca3af; font-size:12px; }
   .row-actions { display:flex; gap:6px; flex-shrink:0; }
@@ -120,7 +121,7 @@
   <div class="header">
     <div>
       <h1>🎤 Admin Panel</h1>
-      <p>Karaoke Night Registrations</p>
+      <p>Karathon 2026 Registrations</p>
       <button class="logout-btn" onclick="logout()">🔓 Logout</button>
     </div>
     <div class="total-badge">
@@ -291,6 +292,7 @@ function render() {
         if (editing === e.id) {
           return `<div class="edit-row">
             <input class="edit-input" id="edit-name-${e.id}" placeholder="Name" value="${esc(e.name)}">
+            <input class="edit-input" id="edit-phone-${e.id}" placeholder="Telephone Contact" value="${esc(e.phone || '')}">
             <input class="edit-input" id="edit-song-${e.id}" placeholder="Song" value="${esc(e.song)}">
             <input class="edit-input" id="edit-version-${e.id}" placeholder="Version" value="${esc(e.version || '')}">
             <select class="edit-input" id="edit-slot-${e.id}" style="height:40px;">
@@ -317,6 +319,7 @@ function render() {
           <span class="num">${i + 1}</span>
           <div class="info">
             <div class="singer">${esc(e.name)}</div>
+            ${e.phone ? `<div class="phone">📞 ${esc(e.phone)}</div>` : ''}
             <div class="song">${esc(e.song)}${e.version ? `<span class="version"> (${esc(e.version)})</span>` : ''}</div>
           </div>
           ${actions}
@@ -347,12 +350,13 @@ function cancelEdit() { editing = null; render(); }
 
 async function saveEdit(id) {
   const name = document.getElementById(`edit-name-${id}`).value.trim();
+  const phone = document.getElementById(`edit-phone-${id}`).value.trim();
   const song = document.getElementById(`edit-song-${id}`).value.trim();
   const version = document.getElementById(`edit-version-${id}`).value.trim();
   const slot = document.getElementById(`edit-slot-${id}`).value;
   if (!name || !song || !slot) return;
   try {
-    await db.collection(COLLECTION).doc(id).update({ name, song, version, slot });
+    await db.collection(COLLECTION).doc(id).update({ name, phone, song, version, slot });
     editing = null;
     showToast("✏️ Entry updated!", "info");
   } catch (err) { showToast("Failed to update", "error"); }
@@ -390,11 +394,11 @@ function showToast(msg, type) {
 }
 
 function buildCSV() {
-  const lines = ["Time Slot,#,Name,Song,Version"];
+  const lines = ["Time Slot,#,Name,Telephone,Song,Version"];
   SLOTS.forEach(slot => {
     getSlotEntries(slot.id).forEach((e, i) => {
       const q = (v) => `"${(v || "").replace(/"/g, '""')}"`;
-      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.song)},${q(e.version)}`);
+      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.phone)},${q(e.song)},${q(e.version)}`);
     });
   });
   return "\uFEFF" + lines.join("\n");
@@ -430,15 +434,15 @@ td{padding:5px 10px;border-bottom:1px solid #eee;font-size:11px}tr:last-child td
 .n{color:#999;width:24px}.em{text-align:center;padding:12px;color:#bbb;font-style:italic}
 .f{text-align:center;margin-top:18px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
 </style></head><body>`;
-  html += `<div class="h"><h1>🎤 Charity Karaoke Night</h1><p>Registration List · Total: ${allRegs.length} singers</p></div>`;
+  html += `<div class="h"><h1>🎤 Karathon 2026</h1><p>Registration List · Total: ${allRegs.length} singers</p></div>`;
   html += `<div class="cs">`;
   SLOTS.forEach(sl => { html += `<div class="c"><div style="color:#888">${sl.short}</div><div class="v">${counts[sl.id]}/${MAX}</div></div>`; });
   html += `</div>`;
   SLOTS.forEach(slot => {
     const entries = getSlotEntries(slot.id);
-    html += `<div class="s"><div class="st"><span>${slot.label}</span><span>${entries.length}/${MAX}</span></div><table><thead><tr><th style="width:24px">#</th><th>Name</th><th>Song</th><th>Version</th></tr></thead><tbody>`;
-    if (!entries.length) html += `<tr><td colspan="4" class="em">No registrations</td></tr>`;
-    else entries.forEach((e, i) => { html += `<tr><td class="n">${i + 1}</td><td>${esc(e.name)}</td><td>${esc(e.song)}</td><td>${esc(e.version)}</td></tr>`; });
+    html += `<div class="s"><div class="st"><span>${slot.label}</span><span>${entries.length}/${MAX}</span></div><table><thead><tr><th style="width:24px">#</th><th>Name</th><th>Telephone</th><th>Song</th><th>Version</th></tr></thead><tbody>`;
+    if (!entries.length) html += `<tr><td colspan="5" class="em">No registrations</td></tr>`;
+    else entries.forEach((e, i) => { html += `<tr><td class="n">${i + 1}</td><td>${esc(e.name)}</td><td>${esc(e.phone)}</td><td>${esc(e.song)}</td><td>${esc(e.version)}</td></tr>`; });
     html += `</tbody></table></div>`;
   });
   html += `<div class="f">Generated ${new Date().toLocaleString("en-MY")}</div></body></html>`;
