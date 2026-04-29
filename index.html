@@ -18,9 +18,20 @@
   label { display:block; font-size:13px; font-weight:600; color:#374151; margin:14px 0 6px; }
   label:first-child { margin-top:0; }
   .req { color:var(--blue); }
-  input[type="text"] { width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid #d1d5db; background:#fff; color:#1a1a1a; font-size:15px; font-family:'DM Sans',sans-serif; outline:none; transition:border 0.2s,box-shadow 0.2s; }
-  input[type="text"]:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+  input[type="text"], input[type="tel"] { width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid #d1d5db; background:#fff; color:#1a1a1a; font-size:15px; font-family:'DM Sans',sans-serif; outline:none; transition:border 0.2s,box-shadow 0.2s; }
+  input[type="text"]:focus, input[type="tel"]:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
   input::placeholder { color:#9ca3af; }
+  input.input-error, input.input-error:focus { border-color:var(--red) !important; box-shadow:0 0 0 3px rgba(239,68,68,0.15) !important; background:#fef2f2; }
+  .slot-btn.slot-error { border-color:var(--red) !important; box-shadow:0 0 0 3px rgba(239,68,68,0.15); background:#fef2f2; }
+  .agree-row.agree-error { border-color:var(--red) !important; background:#fef2f2; box-shadow:0 0 0 3px rgba(239,68,68,0.15); }
+  .err-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn 0.18s ease; }
+  .err-modal { background:#fff; border-radius:16px; max-width:380px; width:100%; padding:22px 22px 18px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.25); border:1.5px solid var(--red); }
+  .err-icon { font-size:42px; margin-bottom:6px; }
+  .err-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color:var(--red); margin-bottom:8px; }
+  .err-msg { font-size:14px; color:#374151; line-height:1.5; margin-bottom:18px; }
+  .err-msg strong { color:#1a1a1a; }
+  .err-ok-btn { width:100%; padding:13px; border-radius:10px; border:none; background:var(--red); color:#fff; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .err-ok-btn:active { transform:scale(0.98); }
   .slots { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
   .slot-btn { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-radius:10px; border:1.5px solid #d1d5db; background:#fff; cursor:pointer; transition:all 0.2s; -webkit-tap-highlight-color:transparent; gap:8px; }
   .slot-btn:active:not(.full) { transform:scale(0.98); }
@@ -106,7 +117,7 @@
       <label>Version of Song</label>
       <input type="text" id="version" placeholder="e.g. Acoustic, Original, Live">
       <label>Donation Amount (RM) <span class="req">*</span></label>
-      <input type="text" id="amount" placeholder="Pick a time slot below" inputmode="numeric" autocomplete="off" readonly style="background:#f9fafb;">
+      <input type="text" id="amount" placeholder="e.g. 150" inputmode="numeric" autocomplete="off">
       <label>Time Slot <span class="req">*</span></label>
       <div class="slots" id="slots"></div>
 
@@ -126,51 +137,20 @@
         </label>
       </div>
 
-      <button class="submit-btn" id="submitBtn" disabled>🎶 Register to Sing</button>
+      <button class="submit-btn" id="submitBtn">🎶 Register to Sing</button>
     </div>
-  </div>
-
-  <div id="success" class="success-screen">
-    <div class="success-card">
-      <div class="success-icon">🎉</div>
-      <div class="success-title">Sign Up Successful!</div>
-      <div class="success-sub">Your slot is reserved — please complete payment to confirm</div>
-      <div class="detail-box" id="regDetails"></div>
-    </div>
-
-    <div class="charity-note">
-      💛 Karathon 2026 is a <strong>charity fundraiser</strong> for<br>Diabetes Malaysia Cawangan Negeri Sarawak.<br>Your participation helps make a difference!
-    </div>
-
-    <div class="deadline-banner">
-      ⏰ <strong>All payment must be submitted by 8 June 2026</strong>
-    </div>
-
-    <div class="payment-card">
-      <div class="payment-title">💳 Step 1 — Transfer Payment</div>
-      <div class="payment-sub">Transfer your donation to the bank account below.</div>
-      <div class="bank-row"><span class="bank-label">Name</span><span class="bank-val">DIABETES MALAYSIA CAWANGAN NEGERI SARAWAK</span></div>
-      <div class="bank-row"><span class="bank-label">Bank</span><span class="bank-val">HONG LEONG BANK</span></div>
-      <div class="bank-row"><span class="bank-label">A/C No</span><span class="bank-val">01600203512</span></div>
-      <button class="copy-acct-btn" onclick="copyAccount()">📋 Copy Account Number</button>
-
-      <div class="payment-steps">
-        <div class="payment-title" style="font-size:14px; margin-bottom:6px;">📸 Step 2 — Send Payment Proof</div>
-        <ol>
-          <li>Save / screenshot the <strong>payment slip</strong> after transfer</li>
-          <li>Send it via <strong>WhatsApp</strong> to <strong>Mdm Connie Tan</strong> (012-8883778)</li>
-          <li>Our admin will WhatsApp you to confirm your song & time slot ✅</li>
-        </ol>
-      </div>
-
-      <button class="wa-connie-btn" onclick="sendProofToConnie()">💬 Send Payment Proof on WhatsApp</button>
-      <div class="wa-connie-sub">Opens WhatsApp chat with Mdm Connie Tan</div>
-    </div>
-
-    <button class="new-reg-btn" onclick="resetForm()">🎤 Register Another Singer</button>
   </div>
 
   <p class="footer">All proceeds go to charity 💛</p>
+</div>
+
+<div id="errOverlay" class="err-overlay" style="display:none;">
+  <div class="err-modal">
+    <div class="err-icon">⚠️</div>
+    <div class="err-title" id="errTitle">Missing Information</div>
+    <div class="err-msg" id="errMsg"></div>
+    <button class="err-ok-btn" id="errOkBtn">OK, Got It</button>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -204,8 +184,20 @@ const SLOTS = [
   { id: "8-10",  label: "8:00 PM – 10:00 PM",  min: 1000 },
 ];
 
+const STORAGE_KEY = "karathon2026_registration";
 let selectedSlot = null;
 let slotCounts = {};
+
+// If user already submitted (saved in localStorage), redirect to confirmation page
+(function checkExistingRegistration() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      // Redirect immediately, before slots even load
+      window.location.replace("confirmation.html");
+    }
+  } catch (e) { /* ignore localStorage errors */ }
+})();
 
 function listenToSlots() {
   db.collection(COLLECTION).onSnapshot(snap => {
@@ -228,22 +220,41 @@ function renderSlots() {
     btn.className = "slot-btn" + (full ? " full" : "") + (selectedSlot === slot.id ? " selected" : "");
     const statusClass = full ? "full" : left <= 5 ? "low" : "open";
     const statusText = full ? "FULL" : `${left} spots left`;
-    btn.innerHTML = `<div class="slot-info"><span class="slot-time">${slot.label}</span><span class="slot-min">Donation: RM ${slot.min}</span></div><span class="slot-count ${statusClass}">${statusText}</span>`;
+    btn.innerHTML = `<div class="slot-info"><span class="slot-time">${slot.label}</span><span class="slot-min">Min donation: RM ${slot.min}</span></div><span class="slot-count ${statusClass}">${statusText}</span>`;
     if (!full) btn.addEventListener("click", () => {
       selectedSlot = slot.id;
-      // Auto-fill donation amount with the slot's minimum
-      document.getElementById("amount").value = slot.min;
+      // Clear any slot-error highlight
+      document.querySelectorAll(".slot-btn").forEach(b => b.classList.remove("slot-error"));
       renderSlots();
-      checkForm();
     });
     container.appendChild(btn);
   });
 }
 
-// Restrict phone input to digits only
-document.getElementById("phone").addEventListener("input", (e) => {
+// Restrict phone input to digits only + clear error state on edit
+const phoneInput = document.getElementById("phone");
+phoneInput.addEventListener("input", (e) => {
   const cleaned = e.target.value.replace(/\D/g, "");
   if (e.target.value !== cleaned) e.target.value = cleaned;
+  e.target.classList.remove("input-error");
+});
+
+// Restrict amount input to digits only + clear error state on edit
+const amountInput = document.getElementById("amount");
+amountInput.addEventListener("input", (e) => {
+  const cleaned = e.target.value.replace(/\D/g, "");
+  if (e.target.value !== cleaned) e.target.value = cleaned;
+  e.target.classList.remove("input-error");
+});
+
+// Clear error states when user re-edits other fields
+["name", "song"].forEach(id => {
+  document.getElementById(id).addEventListener("input", (e) => {
+    e.target.classList.remove("input-error");
+  });
+});
+document.getElementById("agree").addEventListener("change", () => {
+  document.querySelector(".agree-row").classList.remove("agree-error");
 });
 
 function parseAmount(v) {
@@ -251,37 +262,80 @@ function parseAmount(v) {
   return isNaN(n) ? 0 : n;
 }
 
-function checkForm() {
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const song = document.getElementById("song").value.trim();
-  const amount = parseAmount(document.getElementById("amount").value);
-  const agree = document.getElementById("agree").checked;
-  document.getElementById("submitBtn").disabled = !(name && phone && song && amount > 0 && selectedSlot && agree);
-}
-document.getElementById("name").addEventListener("input", checkForm);
-document.getElementById("phone").addEventListener("input", checkForm);
-document.getElementById("song").addEventListener("input", checkForm);
-document.getElementById("amount").addEventListener("input", checkForm);
-document.getElementById("agree").addEventListener("change", checkForm);
+// Show an error modal, then on OK scroll to the offending element and focus it
+function showError(title, msg, focusTargetId, focusType) {
+  document.getElementById("errTitle").textContent = title;
+  document.getElementById("errMsg").innerHTML = msg;
+  const overlay = document.getElementById("errOverlay");
+  overlay.style.display = "flex";
 
-document.getElementById("submitBtn").addEventListener("click", async () => {
-  const btn = document.getElementById("submitBtn");
+  // Highlight the offending element
+  if (focusType === "input" && focusTargetId) {
+    document.getElementById(focusTargetId).classList.add("input-error");
+  } else if (focusType === "slot") {
+    document.querySelectorAll(".slot-btn:not(.full)").forEach(b => b.classList.add("slot-error"));
+  } else if (focusType === "agree") {
+    document.querySelector(".agree-row").classList.add("agree-error");
+  }
+
+  const okBtn = document.getElementById("errOkBtn");
+  const handler = () => {
+    overlay.style.display = "none";
+    okBtn.removeEventListener("click", handler);
+    setTimeout(() => {
+      let target;
+      if (focusType === "input" && focusTargetId) target = document.getElementById(focusTargetId);
+      else if (focusType === "slot") target = document.getElementById("slots");
+      else if (focusType === "agree") target = document.querySelector(".agree-row");
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (focusType === "input") setTimeout(() => target.focus(), 350);
+      }
+    }, 50);
+  };
+  okBtn.addEventListener("click", handler);
+}
+
+function validateForm() {
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const song = document.getElementById("song").value.trim();
-  const version = document.getElementById("version").value.trim();
-  const amount = parseAmount(document.getElementById("amount").value);
+  const amountStr = document.getElementById("amount").value.trim();
+  const amount = parseAmount(amountStr);
   const agree = document.getElementById("agree").checked;
-  if (!name || !phone || !song || !selectedSlot || !amount || !agree) return;
+
+  if (!name) return { error: { title: "Missing Name", msg: "Please enter <strong>your name</strong> to register.", id: "name", type: "input" } };
+  if (!phone) return { error: { title: "Missing Phone", msg: "Please enter <strong>your telephone contact</strong>. We'll WhatsApp you to confirm.", id: "phone", type: "input" } };
+  if (phone.length < 7) return { error: { title: "Phone Too Short", msg: "Please enter a valid phone number (digits only, e.g. <strong>0123456789</strong>).", id: "phone", type: "input" } };
+  if (!song) return { error: { title: "Missing Song", msg: "Please enter the <strong>title of the song</strong> you want to sing.", id: "song", type: "input" } };
+  if (!amountStr || amount <= 0) return { error: { title: "Missing Donation Amount", msg: "Please enter your <strong>donation amount in RM</strong>.", id: "amount", type: "input" } };
+  if (!selectedSlot) return { error: { title: "No Time Slot Picked", msg: "Please <strong>pick a time slot</strong> for your performance.", type: "slot" } };
 
   const slotDef = SLOTS.find(s => s.id === selectedSlot);
   if (amount < slotDef.min) {
-    showToast(`This time slot requires a minimum donation of RM ${slotDef.min}.`, true);
+    return { error: {
+      title: "Donation Below Minimum",
+      msg: `The <strong>${slotDef.label}</strong> slot requires a minimum donation of <strong>RM ${slotDef.min}</strong>.<br>You entered <strong>RM ${amount}</strong>.<br><br>Please increase your donation, or pick a different time slot.`,
+      id: "amount", type: "input"
+    } };
+  }
+  if (!agree) return { error: { title: "Please Agree to Rules", msg: "Please tick the <strong>“I agree”</strong> box to confirm you've read the event rules.", type: "agree" } };
+
+  return { ok: true, name, phone, song, amount, slotDef };
+}
+
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("submitBtn");
+  const result = validateForm();
+  if (result.error) {
+    showError(result.error.title, result.error.msg, result.error.id, result.error.type);
     return;
   }
+  const { name, phone, song, amount, slotDef } = result;
+  const version = document.getElementById("version").value.trim();
+
   if ((slotCounts[selectedSlot] || 0) >= MAX_PER_SLOT) {
-    showToast("This slot just filled up! Please pick another.", true);
+    showError("Slot Just Filled Up", `Sorry, the <strong>${slotDef.label}</strong> slot just filled up. Please pick another time slot.`, null, "slot");
     selectedSlot = null; renderSlots(); return;
   }
   btn.disabled = true; btn.textContent = "Submitting…";
@@ -290,60 +344,37 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     let maxOrder = -1;
     slotSnap.forEach(d => { const o = d.data().order; if (typeof o === "number" && o > maxOrder) maxOrder = o; });
     const slotLabel = slotDef.label;
-    await db.collection(COLLECTION).add({
+    const docRef = await db.collection(COLLECTION).add({
       name, phone, song, version, amount, slot: selectedSlot,
       order: maxOrder + 1,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    // Show success screen with payment info
-    document.getElementById("regDetails").innerHTML =
-      `<div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${esc(name)}</span></div>` +
-      `<div class="detail-row"><span class="detail-label">Telephone</span><span class="detail-value">${esc(phone)}</span></div>` +
-      `<div class="detail-row"><span class="detail-label">Song</span><span class="detail-value">${esc(song)}${version ? ' (' + esc(version) + ')' : ''}</span></div>` +
-      `<div class="detail-row"><span class="detail-label">Time Slot</span><span class="detail-value">${slotLabel}</span></div>` +
-      `<div class="detail-row"><span class="detail-label">Donation</span><span class="detail-value">RM ${amount.toFixed(2)}</span></div>`;
-    document.getElementById("app").style.display = "none";
-    document.getElementById("success").style.display = "block";
-    document.getElementById("name").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("song").value = "";
-    document.getElementById("version").value = "";
-    document.getElementById("amount").value = "";
-    document.getElementById("agree").checked = false;
-    selectedSlot = null;
+
+    // Persist registration to localStorage so confirmation page can render it
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        id: docRef.id,
+        name, phone, song, version, amount,
+        slot: selectedSlot, slotLabel,
+        submittedAt: Date.now()
+      }));
+    } catch (e) { /* ignore */ }
+
+    // Redirect to confirmation page
+    window.location.href = "confirmation.html";
   } catch (err) {
-    showToast("Something went wrong. Please try again.", true);
     console.error(err);
+    showError("Submission Failed", "Something went wrong while saving your registration. Please check your internet connection and try again.", null, null);
+    btn.textContent = "🎶 Register to Sing"; btn.disabled = false;
   }
-  btn.textContent = "🎶 Register to Sing"; btn.disabled = true;
 });
 
-function showToast(msg, isError) {
-  const area = document.getElementById("toast-area");
-  area.innerHTML = `<div class="toast${isError ? ' error' : ''}">${msg}</div>`;
-  setTimeout(() => { area.innerHTML = ""; }, 4000);
-}
-
-function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
-
-function copyAccount() {
-  navigator.clipboard.writeText("01600203512").then(() => {
-    showToast("📋 Account number copied!");
-  }).catch(() => {});
-}
-
-function sendProofToConnie() {
-  // Connie Tan: 012-8883778 → 60128883778
-  const phone = "60128883778";
-  const msg = "Hi Mdm Connie Tan, here is my payment proof for *Karathon 2026*. Thank you! 🎤💛";
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
-}
-
-function resetForm() {
-  document.getElementById("success").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  renderSlots();
-}
+// Allow closing modal with the X / OK button — and ESC key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.getElementById("errOverlay").style.display === "flex") {
+    document.getElementById("errOkBtn").click();
+  }
+});
 
 listenToSlots();
 </script>
