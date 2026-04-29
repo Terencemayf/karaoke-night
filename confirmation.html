@@ -149,7 +149,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -162,8 +161,10 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const storage = firebase.storage();
 const COLLECTION = "registrations";
+
+const CLOUDINARY_CLOUD_NAME = "dmswaqwd";
+const CLOUDINARY_UPLOAD_PRESET = "karathon_payslips";
 
 const STORAGE_KEY = "karathon2026_registration";
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -258,39 +259,34 @@ async function handleFile(file) {
   fillEl.style.width = "0%";
   textEl.textContent = `Uploading ${file.name} (${fmtBytes(file.size)})…`;
 
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `payslips/${saved.id}/${Date.now()}_${safeName}`;
-  const ref = storage.ref(path);
-  const task = ref.put(file, { contentType: file.type });
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  formData.append("folder", `payslips/${saved.id}`);
 
-  task.on("state_changed",
-    (snap) => {
-      const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+  const xhr = new XMLHttpRequest();
+  xhr.upload.addEventListener("progress", (e) => {
+    if (e.lengthComputable) {
+      const pct = Math.round((e.loaded / e.total) * 100);
       fillEl.style.width = pct + "%";
       textEl.textContent = `Uploading… ${pct}%`;
-    },
-    (err) => {
-      console.error("Upload failed", err);
-      progressEl.style.display = "none";
-      document.getElementById("uploadArea").style.display = "block";
-      const reason = (err && err.code === "storage/unauthorized")
-        ? "Upload not allowed — admin needs to enable Storage permissions."
-        : (err.message || "Please try again.");
-      showToast("❌ Upload failed: " + reason, true);
-    },
-    async () => {
+    }
+  });
+  xhr.addEventListener("load", async () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
       try {
-        const url = await task.snapshot.ref.getDownloadURL();
+        const result = JSON.parse(xhr.responseText);
+        const url = result.secure_url;
         const nowMs = Date.now();
         await db.collection(COLLECTION).doc(saved.id).update({
           payslipUrl: url,
           payslipName: file.name,
-          payslipPath: path,
+          payslipPublicId: result.public_id,
+          payslipResourceType: result.resource_type,
           payslipSize: file.size,
           payslipUploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
           payslipUploadedAtMs: nowMs
         });
-        // Update localStorage so a refresh shows the uploaded state immediately
         saved.payslipUrl = url;
         saved.payslipName = file.name;
         saved.payslipUploadedAt = nowMs;
@@ -305,8 +301,26 @@ async function handleFile(file) {
         document.getElementById("uploadArea").style.display = "block";
         showToast("❌ Upload completed but couldn't save record. Please try again.", true);
       }
+    } else {
+      console.error("Cloudinary upload failed", xhr.status, xhr.responseText);
+      progressEl.style.display = "none";
+      document.getElementById("uploadArea").style.display = "block";
+      let msg = "Please try again.";
+      try {
+        const err = JSON.parse(xhr.responseText);
+        if (err && err.error && err.error.message) msg = err.error.message;
+      } catch (e) {}
+      showToast("❌ Upload failed: " + msg, true);
     }
-  );
+  });
+  xhr.addEventListener("error", () => {
+    console.error("Network error during upload");
+    progressEl.style.display = "none";
+    document.getElementById("uploadArea").style.display = "block";
+    showToast("❌ Upload failed: network error", true);
+  });
+  xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`);
+  xhr.send(formData);
 }
 
 function setupUploadHandlers() {
