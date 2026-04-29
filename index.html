@@ -41,20 +41,22 @@
   .success-card { background:#fff; border-radius:16px; padding:24px 18px; margin-top:20px; border:1.5px solid var(--green); box-shadow:0 2px 12px rgba(16,185,129,0.1); text-align:center; }
   .success-icon { font-size:48px; margin-bottom:8px; }
   .success-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--green); margin-bottom:6px; }
-  .success-sub { font-size:14px; color:#6b7280; margin-bottom:16px; }
-  .detail-box { background:#f9fafb; border-radius:12px; padding:14px 16px; text-align:left; margin-bottom:16px; border:1px solid #e5e7eb; }
-  .detail-row { display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-bottom:1px solid #f3f4f6; }
+  .success-sub { font-size:14px; font-weight:400; color:#6b7280; }
+  .detail-box { background:#f9fafb; border-radius:12px; padding:14px 16px; text-align:left; margin-top:16px; border:1px solid #e5e7eb; }
+  .detail-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; border-bottom:1px solid #f3f4f6; }
   .detail-row:last-child { border-bottom:none; }
-  .detail-label { color:#6b7280; font-weight:500; }
-  .detail-value { color:#1a1a1a; font-weight:600; text-align:right; max-width:60%; }
-  .payment-card { background:#fffbeb; border-radius:12px; padding:16px; margin-bottom:16px; border:1.5px solid var(--amber); text-align:left; }
-  .payment-title { font-weight:700; font-size:15px; color:#92400e; margin-bottom:10px; }
-  .bank-info { font-size:13px; color:#1a1a1a; line-height:1.8; }
-  .bank-info strong { display:inline-block; min-width:70px; color:#6b7280; font-weight:500; }
-  .bank-value { font-family:'JetBrains Mono',monospace; font-weight:600; letter-spacing:0.5px; }
-  .copy-acct-btn { display:inline-flex; align-items:center; gap:4px; margin-top:8px; padding:6px 12px; border-radius:6px; border:1px solid var(--amber); background:#fff; color:#92400e; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
-  .charity-note { background:#eff6ff; border-radius:10px; padding:12px 14px; font-size:13px; color:#1e40af; margin-bottom:16px; line-height:1.5; }
-  .new-reg-btn { width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; }
+  .detail-label { color:#6b7280; font-weight:500; font-size:13px; }
+  .detail-value { color:#1a1a1a; font-weight:600; font-size:14px; text-align:right; max-width:60%; }
+  .charity-note { background:#eff6ff; border-radius:12px; padding:14px 16px; font-size:14px; font-weight:500; color:#1e40af; margin-top:16px; line-height:1.6; text-align:center; }
+  .payment-card { background:#fffbeb; border-radius:12px; padding:18px 16px; margin-top:16px; border:1.5px solid var(--amber); text-align:left; }
+  .payment-title { font-weight:700; font-size:16px; color:#92400e; margin-bottom:10px; font-family:'DM Sans',sans-serif; }
+  .payment-sub { font-size:13px; font-weight:400; color:#78350f; margin-bottom:14px; line-height:1.5; }
+  .bank-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; border-bottom:1px solid rgba(245,158,11,0.2); }
+  .bank-row:last-of-type { border-bottom:none; }
+  .bank-label { color:#92400e; font-weight:500; font-size:13px; }
+  .bank-val { color:#1a1a1a; font-weight:600; font-size:14px; text-align:right; max-width:65%; }
+  .copy-acct-btn { display:inline-flex; align-items:center; gap:6px; margin-top:12px; padding:10px 16px; border-radius:10px; border:1.5px solid var(--amber); background:#fff; color:#92400e; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; width:100%; justify-content:center; }
+  .new-reg-btn { width:100%; padding:15px; border-radius:12px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:16px; }
   .footer { text-align:center; font-size:12px; color:#9ca3af; margin-top:28px; }
   .loader { text-align:center; padding:60px 0; color:#9ca3af; }
   .loader::after { content:''; display:block; width:28px; height:28px; margin:12px auto 0; border:2.5px solid #e5e7eb; border-top-color:var(--blue); border-radius:50%; animation:spin 0.7s linear infinite; }
@@ -95,22 +97,19 @@
       <div class="success-icon">🎉</div>
       <div class="success-title">Registration Received!</div>
       <div class="success-sub">Thank you for signing up for Karathon 2026</div>
+      <div class="detail-box" id="regDetails"></div>
     </div>
 
-    <div class="detail-box" id="regDetails"></div>
-
     <div class="charity-note">
-      💛 Karathon 2026 is a <strong>charity fundraiser</strong> for Diabetes Malaysia Cawangan Negeri Sarawak. Your participation helps make a difference!
+      💛 Karathon 2026 is a <strong>charity fundraiser</strong> for<br>Diabetes Malaysia Cawangan Negeri Sarawak.<br>Your participation helps make a difference!
     </div>
 
     <div class="payment-card">
       <div class="payment-title">💳 Payment Details</div>
-      <div style="font-size:13px; color:#78350f; margin-bottom:10px;">Please transfer your participation fee to the account below. Our admin will confirm your registration via WhatsApp.</div>
-      <div class="bank-info">
-        <strong>Name:</strong> DIABETES MALAYSIA CAWANGAN NEGERI SARAWAK<br>
-        <strong>Bank:</strong> HONG LEONG BANK<br>
-        <strong>A/C No:</strong> <span class="bank-value">01600203512</span>
-      </div>
+      <div class="payment-sub">Please transfer your participation fee to the account below. Our admin will confirm your registration via WhatsApp.</div>
+      <div class="bank-row"><span class="bank-label">Name</span><span class="bank-val">DIABETES MALAYSIA CAWANGAN NEGERI SARAWAK</span></div>
+      <div class="bank-row"><span class="bank-label">Bank</span><span class="bank-val">HONG LEONG BANK</span></div>
+      <div class="bank-row"><span class="bank-label">A/C No</span><span class="bank-val">01600203512</span></div>
       <button class="copy-acct-btn" onclick="copyAccount()">📋 Copy Account Number</button>
     </div>
 
