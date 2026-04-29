@@ -100,13 +100,13 @@
       <label>Your Name <span class="req">*</span></label>
       <input type="text" id="name" placeholder="e.g. John Doe" autocomplete="name">
       <label>Telephone Contact <span class="req">*</span></label>
-      <input type="text" id="phone" placeholder="e.g. 012-345 6789" autocomplete="tel">
+      <input type="tel" id="phone" placeholder="e.g. 0123456789" autocomplete="tel" inputmode="numeric">
       <label>Title of Song <span class="req">*</span></label>
       <input type="text" id="song" placeholder="e.g. Bohemian Rhapsody">
       <label>Version of Song</label>
       <input type="text" id="version" placeholder="e.g. Acoustic, Original, Live">
       <label>Donation Amount (RM) <span class="req">*</span></label>
-      <input type="text" id="amount" placeholder="e.g. 150" inputmode="decimal" autocomplete="off">
+      <input type="text" id="amount" placeholder="Pick a time slot below" inputmode="numeric" autocomplete="off" readonly style="background:#f9fafb;">
       <label>Time Slot <span class="req">*</span></label>
       <div class="slots" id="slots"></div>
 
@@ -228,11 +228,23 @@ function renderSlots() {
     btn.className = "slot-btn" + (full ? " full" : "") + (selectedSlot === slot.id ? " selected" : "");
     const statusClass = full ? "full" : left <= 5 ? "low" : "open";
     const statusText = full ? "FULL" : `${left} spots left`;
-    btn.innerHTML = `<div class="slot-info"><span class="slot-time">${slot.label}</span><span class="slot-min">Min donation: RM ${slot.min}</span></div><span class="slot-count ${statusClass}">${statusText}</span>`;
-    if (!full) btn.addEventListener("click", () => { selectedSlot = slot.id; renderSlots(); checkForm(); });
+    btn.innerHTML = `<div class="slot-info"><span class="slot-time">${slot.label}</span><span class="slot-min">Donation: RM ${slot.min}</span></div><span class="slot-count ${statusClass}">${statusText}</span>`;
+    if (!full) btn.addEventListener("click", () => {
+      selectedSlot = slot.id;
+      // Auto-fill donation amount with the slot's minimum
+      document.getElementById("amount").value = slot.min;
+      renderSlots();
+      checkForm();
+    });
     container.appendChild(btn);
   });
 }
+
+// Restrict phone input to digits only
+document.getElementById("phone").addEventListener("input", (e) => {
+  const cleaned = e.target.value.replace(/\D/g, "");
+  if (e.target.value !== cleaned) e.target.value = cleaned;
+});
 
 function parseAmount(v) {
   const n = parseFloat(String(v).replace(/[^0-9.]/g, ""));
