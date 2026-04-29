@@ -314,7 +314,7 @@ function render() {
           <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},1)" ${i === entries.length - 1 ? 'disabled' : ''}>▼</button>
         </div>` : '';
         const actions = !isReordering ? `<div class="row-actions">
-          ${e.phone ? `<button class="wa-btn ${e.whatsappSent ? 'sent' : ''}" onclick="sendWhatsApp('${e.id}','${esc(e.phone)}','${esc(e.name)}','${esc(e.song)}','${esc(e.version)}','${slot.label}')" title="${e.whatsappSent ? 'Resend WhatsApp' : 'Send WhatsApp confirmation'}">💬</button>` : ''}
+          ${e.phone ? `<button class="wa-btn ${e.whatsappSent ? 'sent' : ''}" onclick="sendWhatsApp('${e.id}','${esc(e.phone)}','${esc(e.name)}','${esc(e.song)}','${esc(e.version)}','${slot.label}')" title="${e.whatsappSent ? 'Resend payment confirmation' : 'Confirm payment & notify via WhatsApp'}">💬</button>` : ''}
           <button class="icon-btn" onclick="startEdit('${e.id}')">✏️</button>
           ${confirmDelete === e.id
             ? `<button class="confirm-delete-btn" onclick="deleteEntry('${e.id}')">Delete?</button>`
@@ -324,7 +324,7 @@ function render() {
           ${arrows}
           <span class="num">${i + 1}</span>
           <div class="info">
-            <div class="singer">${esc(e.name)} <span class="wa-status ${e.whatsappSent ? 'sent' : 'pending'}">${e.whatsappSent ? '✓ Notified' : '⏳ Pending'}</span></div>
+            <div class="singer">${esc(e.name)} <span class="wa-status ${e.whatsappSent ? 'sent' : 'pending'}">${e.whatsappSent ? '✅ Confirmed' : '⏳ Pending Payment'}</span></div>
             ${e.phone ? `<div class="phone">📞 ${esc(e.phone)}</div>` : ''}
             <div class="song">${esc(e.song)}${e.version ? `<span class="version"> (${esc(e.version)})</span>` : ''}</div>
           </div>
@@ -384,19 +384,20 @@ function sendWhatsApp(docId, phone, name, song, version, slotLabel) {
   if (!/^\d+$/.test(cleaned)) { showToast('Invalid phone number', 'error'); return; }
 
   const msg = `Hi ${name}! 👋\n\n` +
-    `Thank you for registering for *Karathon 2026* 🎤🎶\n\n` +
-    `We have received your registration! Here are your details:\n` +
+    `Thank you for your generous contribution to *Karathon 2026*! 🎤🎶\n\n` +
+    `✅ We have received your payment. Your song has been confirmed!\n\n` +
+    `Here are your details:\n` +
     `📛 Name: ${name}\n` +
     `🎵 Song: ${song}${version ? ' (' + version + ')' : ''}\n` +
-    `🕐 Time Slot: ${slotLabel}\n\n` +
-    `We will confirm your slot once payment is received. Thank you! 🎉`;
+    `🕐 Time Slot: *${slotLabel}*\n\n` +
+    `Please remember to arrive on time for your slot. See you there! 🎉`;
 
   const waUrl = `https://wa.me/${cleaned}?text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
 
   // Mark as sent in Firestore
   db.collection(COLLECTION).doc(docId).update({ whatsappSent: true })
-    .then(() => showToast('💬 WhatsApp opened — mark as notified!', 'info'))
+    .then(() => showToast('✅ Payment confirmed — WhatsApp opened!', 'info'))
     .catch(() => {});
 }
 
@@ -423,7 +424,7 @@ function showToast(msg, type) {
 }
 
 function buildCSV() {
-  const lines = ["Time Slot,#,Name,Telephone,Song,Version,Notified"];
+  const lines = ["Time Slot,#,Name,Telephone,Song,Version,Payment Confirmed"];
   SLOTS.forEach(slot => {
     getSlotEntries(slot.id).forEach((e, i) => {
       const q = (v) => `"${(v || "").replace(/"/g, '""')}"`;
