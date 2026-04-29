@@ -75,8 +75,11 @@
   .confirm-delete-btn { padding:6px 12px; border-radius:6px; border:1.5px solid var(--red); background:#fef2f2; color:var(--red); font-size:12px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; min-height:36px; }
   .wa-btn { width:36px; height:36px; border-radius:8px; border:1px solid #25D366; background:#ecfdf5; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0; -webkit-tap-highlight-color:transparent; }
   .wa-btn.sent { background:#d1fae5; border-color:#10b981; }
+  .slip-btn { width:36px; height:36px; border-radius:8px; border:1px solid var(--amber); background:#fffbeb; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0; text-decoration:none; -webkit-tap-highlight-color:transparent; }
+  .slip-btn:hover { background:#fef3c7; }
   .wa-status { font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; display:inline-block; margin-left:4px; }
   .wa-status.pending { background:#fef3c7; color:#92400e; }
+  .wa-status.slip { background:#dbeafe; color:#1e40af; }
   .wa-status.sent { background:#d1fae5; color:#065f46; }
   .empty-slot { text-align:center; padding:20px; color:#9ca3af; font-size:13px; }
   .edit-row { display:flex; flex-direction:column; gap:8px; padding:12px 14px; background:#f0f4ff; border-bottom:1px solid #dbeafe; }
@@ -327,7 +330,9 @@ function render() {
           <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},-1)" ${i === 0 ? 'disabled' : ''}>▲</button>
           <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},1)" ${i === entries.length - 1 ? 'disabled' : ''}>▼</button>
         </div>` : '';
+        const slipBtn = e.payslipUrl ? `<a class="slip-btn" href="${esc(e.payslipUrl)}" target="_blank" rel="noopener" title="View payslip (${esc(e.payslipName || 'file')})">📎</a>` : '';
         const actions = !isReordering ? `<div class="row-actions">
+          ${slipBtn}
           ${e.phone ? `<button class="wa-btn ${e.whatsappSent ? 'sent' : ''}" onclick="sendWhatsApp('${e.id}','${esc(e.phone)}','${esc(e.name)}','${esc(e.song)}','${esc(e.version)}','${slot.label}',${parseFloat(e.amount) || 0})" title="${e.whatsappSent ? 'Resend payment confirmation' : 'Confirm payment & notify via WhatsApp'}">💬</button>` : ''}
           <button class="icon-btn" onclick="startEdit('${e.id}')">✏️</button>
           ${confirmDelete === e.id
@@ -337,11 +342,13 @@ function render() {
         const amt = parseFloat(e.amount) || 0;
         const amtClass = (amt > 0 && amt < slot.min) ? 'amount-pill short' : 'amount-pill';
         const amtPill = amt > 0 ? `<span class="${amtClass}">${fmtAmount(amt)}</span>` : `<span class="amount-pill short">No amount</span>`;
+        const statusCls = e.whatsappSent ? 'sent' : (e.payslipUrl ? 'slip' : 'pending');
+        const statusTxt = e.whatsappSent ? '✅ Confirmed' : (e.payslipUrl ? '📎 Slip Uploaded' : '⏳ Pending Payment');
         return `<div class="entry-row${isReordering ? ' reordering' : ''}">
           ${arrows}
           <span class="num">${i + 1}</span>
           <div class="info">
-            <div class="singer">${esc(e.name)} <span class="wa-status ${e.whatsappSent ? 'sent' : 'pending'}">${e.whatsappSent ? '✅ Confirmed' : '⏳ Pending Payment'}</span></div>
+            <div class="singer">${esc(e.name)} <span class="wa-status ${statusCls}">${statusTxt}</span></div>
             ${e.phone ? `<div class="phone">📞 ${esc(e.phone)}</div>` : ''}
             <div class="song">${esc(e.song)}${e.version ? `<span class="version"> (${esc(e.version)})</span>` : ''} ${amtPill}</div>
           </div>
@@ -445,17 +452,17 @@ function showToast(msg, type) {
 }
 
 function buildCSV() {
-  const lines = ["Time Slot,#,Name,Telephone,Song,Version,Donation (RM),Payment Confirmed"];
+  const lines = ["Time Slot,#,Name,Telephone,Song,Version,Donation (RM),Payslip URL,Payment Confirmed"];
   let total = 0;
   SLOTS.forEach(slot => {
     getSlotEntries(slot.id).forEach((e, i) => {
       const q = (v) => `"${(v || "").replace(/"/g, '""')}"`;
       const amt = parseFloat(e.amount) || 0;
       total += amt;
-      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.phone)},${q(e.song)},${q(e.version)},${amt > 0 ? amt.toFixed(2) : ''},${e.whatsappSent ? 'Yes' : 'No'}`);
+      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.phone)},${q(e.song)},${q(e.version)},${amt > 0 ? amt.toFixed(2) : ''},${q(e.payslipUrl || '')},${e.whatsappSent ? 'Yes' : 'No'}`);
     });
   });
-  lines.push(`,,,,,,${total.toFixed(2)},TOTAL`);
+  lines.push(`,,,,,,${total.toFixed(2)},,TOTAL`);
   return "\uFEFF" + lines.join("\n");
 }
 
@@ -498,11 +505,12 @@ td{padding:5px 10px;border-bottom:1px solid #eee;font-size:11px}tr:last-child td
     const entries = getSlotEntries(slot.id);
     let slotTotal = 0;
     entries.forEach(e => { slotTotal += parseFloat(e.amount) || 0; });
-    html += `<div class="s"><div class="st"><span>${slot.label} (Min RM${slot.min})</span><span>${entries.length}/${MAX} · RM ${slotTotal.toFixed(2)}</span></div><table><thead><tr><th style="width:24px">#</th><th>Name</th><th>Telephone</th><th>Song</th><th>Version</th><th style="text-align:right;width:70px">RM</th></tr></thead><tbody>`;
-    if (!entries.length) html += `<tr><td colspan="6" class="em">No registrations</td></tr>`;
+    html += `<div class="s"><div class="st"><span>${slot.label} (Min RM${slot.min})</span><span>${entries.length}/${MAX} · RM ${slotTotal.toFixed(2)}</span></div><table><thead><tr><th style="width:24px">#</th><th>Name</th><th>Telephone</th><th>Song</th><th>Version</th><th style="text-align:right;width:70px">RM</th><th style="text-align:center;width:50px">Slip</th></tr></thead><tbody>`;
+    if (!entries.length) html += `<tr><td colspan="7" class="em">No registrations</td></tr>`;
     else entries.forEach((e, i) => {
       const amt = parseFloat(e.amount) || 0;
-      html += `<tr><td class="n">${i + 1}</td><td>${esc(e.name)}</td><td>${esc(e.phone)}</td><td>${esc(e.song)}</td><td>${esc(e.version)}</td><td style="text-align:right;font-weight:600">${amt > 0 ? amt.toFixed(0) : '-'}</td></tr>`;
+      const slipMark = e.payslipUrl ? '✓' : (e.whatsappSent ? '✓' : '-');
+      html += `<tr><td class="n">${i + 1}</td><td>${esc(e.name)}</td><td>${esc(e.phone)}</td><td>${esc(e.song)}</td><td>${esc(e.version)}</td><td style="text-align:right;font-weight:600">${amt > 0 ? amt.toFixed(0) : '-'}</td><td style="text-align:center;font-weight:700;color:#10b981">${slipMark}</td></tr>`;
     });
     html += `</tbody></table></div>`;
   });
