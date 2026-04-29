@@ -70,6 +70,11 @@
   .arrow-btn { width:28px; height:22px; border-radius:4px; border:1px solid #d1d5db; background:#fff; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center; padding:0; color:var(--blue); font-weight:700; -webkit-tap-highlight-color:transparent; }
   .arrow-btn:disabled { opacity:0.2; cursor:not-allowed; }
   .confirm-delete-btn { padding:6px 12px; border-radius:6px; border:1.5px solid var(--red); background:#fef2f2; color:var(--red); font-size:12px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; min-height:36px; }
+  .wa-btn { width:36px; height:36px; border-radius:8px; border:1px solid #25D366; background:#ecfdf5; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0; -webkit-tap-highlight-color:transparent; }
+  .wa-btn.sent { background:#d1fae5; border-color:#10b981; }
+  .wa-status { font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; display:inline-block; margin-left:4px; }
+  .wa-status.pending { background:#fef3c7; color:#92400e; }
+  .wa-status.sent { background:#d1fae5; color:#065f46; }
   .empty-slot { text-align:center; padding:20px; color:#9ca3af; font-size:13px; }
   .edit-row { display:flex; flex-direction:column; gap:8px; padding:12px 14px; background:#f0f4ff; border-bottom:1px solid #dbeafe; }
   .edit-input { width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid #93c5fd; background:#fff; color:#1a1a1a; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; }
@@ -309,6 +314,7 @@ function render() {
           <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},1)" ${i === entries.length - 1 ? 'disabled' : ''}>▼</button>
         </div>` : '';
         const actions = !isReordering ? `<div class="row-actions">
+          ${e.phone ? `<button class="wa-btn ${e.whatsappSent ? 'sent' : ''}" onclick="sendWhatsApp('${e.id}','${esc(e.phone)}','${esc(e.name)}','${esc(e.song)}','${esc(e.version)}','${slot.label}')" title="${e.whatsappSent ? 'Resend WhatsApp' : 'Send WhatsApp confirmation'}">💬</button>` : ''}
           <button class="icon-btn" onclick="startEdit('${e.id}')">✏️</button>
           ${confirmDelete === e.id
             ? `<button class="confirm-delete-btn" onclick="deleteEntry('${e.id}')">Delete?</button>`
@@ -318,7 +324,7 @@ function render() {
           ${arrows}
           <span class="num">${i + 1}</span>
           <div class="info">
-            <div class="singer">${esc(e.name)}</div>
+            <div class="singer">${esc(e.name)} <span class="wa-status ${e.whatsappSent ? 'sent' : 'pending'}">${e.whatsappSent ? '✓ Notified' : '⏳ Pending'}</span></div>
             ${e.phone ? `<div class="phone">📞 ${esc(e.phone)}</div>` : ''}
             <div class="song">${esc(e.song)}${e.version ? `<span class="version"> (${esc(e.version)})</span>` : ''}</div>
           </div>
@@ -371,6 +377,29 @@ async function deleteEntry(id) {
   } catch (err) { showToast("Failed to delete", "error"); }
 }
 
+function sendWhatsApp(docId, phone, name, song, version, slotLabel) {
+  // Clean phone number: remove spaces, dashes, brackets, leading 0 → add 60 (Malaysia)
+  let cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
+  if (cleaned.startsWith('0')) cleaned = '60' + cleaned.slice(1);
+  if (!/^\d+$/.test(cleaned)) { showToast('Invalid phone number', 'error'); return; }
+
+  const msg = `Hi ${name}! 👋\n\n` +
+    `Thank you for registering for *Karathon 2026* 🎤🎶\n\n` +
+    `Here are your registration details:\n` +
+    `📛 Name: ${name}\n` +
+    `🎵 Song: ${song}${version ? ' (' + version + ')' : ''}\n` +
+    `🕐 Time Slot: ${slotLabel}\n\n` +
+    `We look forward to seeing you! 🎉`;
+
+  const waUrl = `https://wa.me/${cleaned}?text=${encodeURIComponent(msg)}`;
+  window.open(waUrl, '_blank');
+
+  // Mark as sent in Firestore
+  db.collection(COLLECTION).doc(docId).update({ whatsappSent: true })
+    .then(() => showToast('💬 WhatsApp opened — mark as notified!', 'info'))
+    .catch(() => {});
+}
+
 function toggleReorder(slotId) { reorderSlot = reorderSlot === slotId ? null : slotId; editing = null; confirmDelete = null; render(); }
 
 async function moveEntry(slotId, fromIdx, dir) {
@@ -394,11 +423,11 @@ function showToast(msg, type) {
 }
 
 function buildCSV() {
-  const lines = ["Time Slot,#,Name,Telephone,Song,Version"];
+  const lines = ["Time Slot,#,Name,Telephone,Song,Version,Notified"];
   SLOTS.forEach(slot => {
     getSlotEntries(slot.id).forEach((e, i) => {
       const q = (v) => `"${(v || "").replace(/"/g, '""')}"`;
-      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.phone)},${q(e.song)},${q(e.version)}`);
+      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.phone)},${q(e.song)},${q(e.version)},${e.whatsappSent ? 'Yes' : 'No'}`);
     });
   });
   return "\uFEFF" + lines.join("\n");
