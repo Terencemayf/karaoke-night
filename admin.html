@@ -64,6 +64,9 @@
   .phone { font-size:12px; color:#6b7280; }
   .song { font-size:13px; color:#374151; }
   .version { color:#9ca3af; font-size:12px; }
+  .amount-pill { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#065f46; background:#d1fae5; padding:2px 8px; border-radius:4px; margin-left:6px; }
+  .amount-pill.short { background:#fee2e2; color:#991b1b; }
+  .total-raised { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:var(--green); margin-top:4px; }
   .row-actions { display:flex; gap:6px; flex-shrink:0; }
   .icon-btn { width:36px; height:36px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0; -webkit-tap-highlight-color:transparent; }
   .arrow-col { display:flex; flex-direction:column; gap:2px; margin-right:4px; }
@@ -131,7 +134,8 @@
     </div>
     <div class="total-badge">
       <div class="total-num" id="totalCount">–</div>
-      <div class="total-label">Total</div>
+      <div class="total-label">Singers</div>
+      <div class="total-raised" id="totalRaised">RM 0</div>
     </div>
   </div>
 
@@ -235,11 +239,12 @@ function logout() {
 const COLLECTION = "registrations";
 const MAX = 24;
 const SLOTS = [
-  { id: "12-2",  label: "12:00 PM – 2:00 PM",  short: "12–2 PM" },
-  { id: "2-4",   label: "2:00 PM – 4:00 PM",    short: "2–4 PM" },
-  { id: "4-6",   label: "4:00 PM – 6:00 PM",    short: "4–6 PM" },
-  { id: "6-8",   label: "6:00 PM – 8:00 PM",    short: "6–8 PM" },
-  { id: "8-10",  label: "8:00 PM – 10:00 PM",   short: "8–10 PM" },
+  { id: "10-12", label: "10:00 AM – 12:00 PM", short: "10–12 PM", min: 100  },
+  { id: "12-2",  label: "12:00 PM – 2:00 PM",  short: "12–2 PM",  min: 150  },
+  { id: "2-4",   label: "2:00 PM – 4:00 PM",   short: "2–4 PM",   min: 200  },
+  { id: "4-6",   label: "4:00 PM – 6:00 PM",   short: "4–6 PM",   min: 300  },
+  { id: "6-8",   label: "6:00 PM – 8:00 PM",   short: "6–8 PM",   min: 500  },
+  { id: "8-10",  label: "8:00 PM – 10:00 PM",  short: "8–10 PM",  min: 1000 },
 ];
 let db, allRegs = [];
 let editing = null, confirmDelete = null, reorderSlot = null;
@@ -272,10 +277,18 @@ function getSlotEntries(slotId) {
   return allRegs.filter(r => r.slot === slotId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
+function fmtAmount(n) {
+  const v = parseFloat(n);
+  if (isNaN(v) || v <= 0) return "";
+  return v % 1 === 0 ? `RM ${v}` : `RM ${v.toFixed(2)}`;
+}
+
 function render() {
   const counts = {};
   SLOTS.forEach(s => counts[s.id] = getSlotEntries(s.id).length);
   document.getElementById("totalCount").textContent = allRegs.length;
+  const totalRaised = allRegs.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+  document.getElementById("totalRaised").textContent = `RM ${totalRaised.toFixed(2)}`;
 
   document.getElementById("summaryBar").innerHTML = SLOTS.map(slot => {
     const c = counts[slot.id];
@@ -300,8 +313,9 @@ function render() {
             <input class="edit-input" id="edit-phone-${e.id}" placeholder="Telephone Contact" value="${esc(e.phone || '')}">
             <input class="edit-input" id="edit-song-${e.id}" placeholder="Song" value="${esc(e.song)}">
             <input class="edit-input" id="edit-version-${e.id}" placeholder="Version" value="${esc(e.version || '')}">
+            <input class="edit-input" id="edit-amount-${e.id}" placeholder="Donation Amount (RM)" inputmode="decimal" value="${e.amount != null ? e.amount : ''}">
             <select class="edit-input" id="edit-slot-${e.id}" style="height:40px;">
-              ${SLOTS.map(sl => `<option value="${sl.id}" ${sl.id === e.slot ? 'selected' : ''}>${sl.label}</option>`).join("")}
+              ${SLOTS.map(sl => `<option value="${sl.id}" ${sl.id === e.slot ? 'selected' : ''}>${sl.label} (Min RM${sl.min})</option>`).join("")}
             </select>
             <div class="edit-buttons">
               <button class="save-btn" onclick="saveEdit('${e.id}')">Save</button>
@@ -314,19 +328,22 @@ function render() {
           <button class="arrow-btn" onclick="moveEntry('${slot.id}',${i},1)" ${i === entries.length - 1 ? 'disabled' : ''}>▼</button>
         </div>` : '';
         const actions = !isReordering ? `<div class="row-actions">
-          ${e.phone ? `<button class="wa-btn ${e.whatsappSent ? 'sent' : ''}" onclick="sendWhatsApp('${e.id}','${esc(e.phone)}','${esc(e.name)}','${esc(e.song)}','${esc(e.version)}','${slot.label}')" title="${e.whatsappSent ? 'Resend payment confirmation' : 'Confirm payment & notify via WhatsApp'}">💬</button>` : ''}
+          ${e.phone ? `<button class="wa-btn ${e.whatsappSent ? 'sent' : ''}" onclick="sendWhatsApp('${e.id}','${esc(e.phone)}','${esc(e.name)}','${esc(e.song)}','${esc(e.version)}','${slot.label}',${parseFloat(e.amount) || 0})" title="${e.whatsappSent ? 'Resend payment confirmation' : 'Confirm payment & notify via WhatsApp'}">💬</button>` : ''}
           <button class="icon-btn" onclick="startEdit('${e.id}')">✏️</button>
           ${confirmDelete === e.id
             ? `<button class="confirm-delete-btn" onclick="deleteEntry('${e.id}')">Delete?</button>`
             : `<button class="icon-btn" onclick="askDelete('${e.id}')">🗑️</button>`}
         </div>` : '';
+        const amt = parseFloat(e.amount) || 0;
+        const amtClass = (amt > 0 && amt < slot.min) ? 'amount-pill short' : 'amount-pill';
+        const amtPill = amt > 0 ? `<span class="${amtClass}">${fmtAmount(amt)}</span>` : `<span class="amount-pill short">No amount</span>`;
         return `<div class="entry-row${isReordering ? ' reordering' : ''}">
           ${arrows}
           <span class="num">${i + 1}</span>
           <div class="info">
             <div class="singer">${esc(e.name)} <span class="wa-status ${e.whatsappSent ? 'sent' : 'pending'}">${e.whatsappSent ? '✅ Confirmed' : '⏳ Pending Payment'}</span></div>
             ${e.phone ? `<div class="phone">📞 ${esc(e.phone)}</div>` : ''}
-            <div class="song">${esc(e.song)}${e.version ? `<span class="version"> (${esc(e.version)})</span>` : ''}</div>
+            <div class="song">${esc(e.song)}${e.version ? `<span class="version"> (${esc(e.version)})</span>` : ''} ${amtPill}</div>
           </div>
           ${actions}
         </div>`;
@@ -359,10 +376,12 @@ async function saveEdit(id) {
   const phone = document.getElementById(`edit-phone-${id}`).value.trim();
   const song = document.getElementById(`edit-song-${id}`).value.trim();
   const version = document.getElementById(`edit-version-${id}`).value.trim();
+  const amountRaw = document.getElementById(`edit-amount-${id}`).value;
+  const amount = parseFloat(String(amountRaw).replace(/[^0-9.]/g, "")) || 0;
   const slot = document.getElementById(`edit-slot-${id}`).value;
   if (!name || !song || !slot) return;
   try {
-    await db.collection(COLLECTION).doc(id).update({ name, phone, song, version, slot });
+    await db.collection(COLLECTION).doc(id).update({ name, phone, song, version, amount, slot });
     editing = null;
     showToast("✏️ Entry updated!", "info");
   } catch (err) { showToast("Failed to update", "error"); }
@@ -377,18 +396,20 @@ async function deleteEntry(id) {
   } catch (err) { showToast("Failed to delete", "error"); }
 }
 
-function sendWhatsApp(docId, phone, name, song, version, slotLabel) {
+function sendWhatsApp(docId, phone, name, song, version, slotLabel, amount) {
   // Clean phone number: remove spaces, dashes, brackets, leading 0 → add 60 (Malaysia)
   let cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
   if (cleaned.startsWith('0')) cleaned = '60' + cleaned.slice(1);
   if (!/^\d+$/.test(cleaned)) { showToast('Invalid phone number', 'error'); return; }
 
+  const amtLine = (amount && amount > 0) ? `💰 Donation: RM ${amount}\n` : '';
   const msg = `Hi ${name}! 👋\n\n` +
     `Thank you for your generous contribution to *Karathon 2026*! 🎤🎶\n\n` +
     `✅ We have received your payment. Your song has been confirmed!\n\n` +
     `Here are your details:\n` +
     `📛 Name: ${name}\n` +
     `🎵 Song: ${song}${version ? ' (' + version + ')' : ''}\n` +
+    amtLine +
     `🕐 Time Slot: *${slotLabel}*\n\n` +
     `Please remember to arrive on time for your slot. See you there! 🎉`;
 
@@ -424,13 +445,17 @@ function showToast(msg, type) {
 }
 
 function buildCSV() {
-  const lines = ["Time Slot,#,Name,Telephone,Song,Version,Payment Confirmed"];
+  const lines = ["Time Slot,#,Name,Telephone,Song,Version,Donation (RM),Payment Confirmed"];
+  let total = 0;
   SLOTS.forEach(slot => {
     getSlotEntries(slot.id).forEach((e, i) => {
       const q = (v) => `"${(v || "").replace(/"/g, '""')}"`;
-      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.phone)},${q(e.song)},${q(e.version)},${e.whatsappSent ? 'Yes' : 'No'}`);
+      const amt = parseFloat(e.amount) || 0;
+      total += amt;
+      lines.push(`${q(slot.label)},${i + 1},${q(e.name)},${q(e.phone)},${q(e.song)},${q(e.version)},${amt > 0 ? amt.toFixed(2) : ''},${e.whatsappSent ? 'Yes' : 'No'}`);
     });
   });
+  lines.push(`,,,,,,${total.toFixed(2)},TOTAL`);
   return "\uFEFF" + lines.join("\n");
 }
 
@@ -464,15 +489,21 @@ td{padding:5px 10px;border-bottom:1px solid #eee;font-size:11px}tr:last-child td
 .n{color:#999;width:24px}.em{text-align:center;padding:12px;color:#bbb;font-style:italic}
 .f{text-align:center;margin-top:18px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
 </style></head><body>`;
-  html += `<div class="h"><h1>🎤 Karathon 2026</h1><p>Registration List · Total: ${allRegs.length} singers</p></div>`;
+  const totalRaised = allRegs.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+  html += `<div class="h"><h1>🎤 Karathon 2026</h1><p>Registration List · ${allRegs.length} singers · Total raised: RM ${totalRaised.toFixed(2)}</p></div>`;
   html += `<div class="cs">`;
   SLOTS.forEach(sl => { html += `<div class="c"><div style="color:#888">${sl.short}</div><div class="v">${counts[sl.id]}/${MAX}</div></div>`; });
   html += `</div>`;
   SLOTS.forEach(slot => {
     const entries = getSlotEntries(slot.id);
-    html += `<div class="s"><div class="st"><span>${slot.label}</span><span>${entries.length}/${MAX}</span></div><table><thead><tr><th style="width:24px">#</th><th>Name</th><th>Telephone</th><th>Song</th><th>Version</th></tr></thead><tbody>`;
-    if (!entries.length) html += `<tr><td colspan="5" class="em">No registrations</td></tr>`;
-    else entries.forEach((e, i) => { html += `<tr><td class="n">${i + 1}</td><td>${esc(e.name)}</td><td>${esc(e.phone)}</td><td>${esc(e.song)}</td><td>${esc(e.version)}</td></tr>`; });
+    let slotTotal = 0;
+    entries.forEach(e => { slotTotal += parseFloat(e.amount) || 0; });
+    html += `<div class="s"><div class="st"><span>${slot.label} (Min RM${slot.min})</span><span>${entries.length}/${MAX} · RM ${slotTotal.toFixed(2)}</span></div><table><thead><tr><th style="width:24px">#</th><th>Name</th><th>Telephone</th><th>Song</th><th>Version</th><th style="text-align:right;width:70px">RM</th></tr></thead><tbody>`;
+    if (!entries.length) html += `<tr><td colspan="6" class="em">No registrations</td></tr>`;
+    else entries.forEach((e, i) => {
+      const amt = parseFloat(e.amount) || 0;
+      html += `<tr><td class="n">${i + 1}</td><td>${esc(e.name)}</td><td>${esc(e.phone)}</td><td>${esc(e.song)}</td><td>${esc(e.version)}</td><td style="text-align:right;font-weight:600">${amt > 0 ? amt.toFixed(0) : '-'}</td></tr>`;
+    });
     html += `</tbody></table></div>`;
   });
   html += `<div class="f">Generated ${new Date().toLocaleString("en-MY")}</div></body></html>`;

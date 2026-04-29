@@ -22,15 +22,26 @@
   input[type="text"]:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
   input::placeholder { color:#9ca3af; }
   .slots { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
-  .slot-btn { display:flex; justify-content:space-between; align-items:center; padding:13px 14px; border-radius:10px; border:1.5px solid #d1d5db; background:#fff; cursor:pointer; transition:all 0.2s; -webkit-tap-highlight-color:transparent; }
+  .slot-btn { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-radius:10px; border:1.5px solid #d1d5db; background:#fff; cursor:pointer; transition:all 0.2s; -webkit-tap-highlight-color:transparent; gap:8px; }
   .slot-btn:active:not(.full) { transform:scale(0.98); }
   .slot-btn.selected { border-color:var(--blue); background:rgba(37,99,235,0.05); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
   .slot-btn.full { opacity:0.4; cursor:not-allowed; }
-  .slot-time { font-size:13px; font-weight:500; color:#1a1a1a; }
-  .slot-count { font-size:12px; font-weight:600; }
+  .slot-info { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
+  .slot-time { font-size:13px; font-weight:600; color:#1a1a1a; }
+  .slot-min { font-size:11px; font-weight:500; color:#6b7280; }
+  .slot-count { font-size:12px; font-weight:600; flex-shrink:0; text-align:right; }
   .slot-count.open { color:var(--green); }
   .slot-count.low { color:var(--amber); }
   .slot-count.full { color:var(--red); }
+  .rules-card { background:#fffbeb; border:1.5px solid var(--amber); border-radius:12px; padding:16px; margin-top:18px; }
+  .rules-title { font-weight:700; font-size:14px; color:#92400e; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .rules-list { list-style:none; padding:0; margin:0 0 12px 0; }
+  .rules-list li { font-size:12.5px; color:#78350f; padding:5px 0 5px 18px; position:relative; line-height:1.5; }
+  .rules-list li::before { content:"\2022"; position:absolute; left:6px; color:var(--amber); font-weight:700; }
+  .rules-list strong { color:#7c2d12; }
+  .agree-row { display:flex; align-items:flex-start; gap:9px; padding:10px 12px; background:#fff; border:1.5px solid var(--amber); border-radius:10px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .agree-row input[type="checkbox"] { width:18px; height:18px; flex-shrink:0; accent-color:var(--amber); cursor:pointer; margin-top:1px; }
+  .agree-row span { font-size:13px; font-weight:600; color:#78350f; line-height:1.4; }
   .submit-btn { width:100%; padding:15px; border-radius:12px; border:none; background:var(--blue); color:#fff; font-size:16px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:22px; transition:background 0.2s,transform 0.15s; -webkit-tap-highlight-color:transparent; }
   .submit-btn:hover:not(:disabled) { background:var(--blue-dark); }
   .submit-btn:active:not(:disabled) { transform:scale(0.98); }
@@ -48,9 +59,17 @@
   .detail-label { color:#6b7280; font-weight:500; font-size:13px; }
   .detail-value { color:#1a1a1a; font-weight:600; font-size:14px; text-align:right; max-width:60%; }
   .charity-note { background:#eff6ff; border-radius:12px; padding:14px 16px; font-size:14px; font-weight:500; color:#1e40af; margin-top:16px; line-height:1.6; text-align:center; }
+  .deadline-banner { background:#fef2f2; border:1.5px solid var(--red); border-radius:12px; padding:12px 14px; margin-top:16px; text-align:center; font-size:13px; font-weight:600; color:#991b1b; line-height:1.5; }
+  .deadline-banner strong { color:var(--red); font-size:14px; }
   .payment-card { background:#fffbeb; border-radius:12px; padding:18px 16px; margin-top:16px; border:1.5px solid var(--amber); text-align:left; }
   .payment-title { font-weight:700; font-size:16px; color:#92400e; margin-bottom:10px; font-family:'DM Sans',sans-serif; }
   .payment-sub { font-size:13px; font-weight:400; color:#78350f; margin-bottom:14px; line-height:1.5; }
+  .payment-steps { background:#fff; border:1px solid #fde68a; border-radius:10px; padding:12px 14px; margin-top:12px; }
+  .payment-steps ol { margin:0; padding-left:20px; font-size:12.5px; color:#78350f; line-height:1.7; }
+  .payment-steps strong { color:#7c2d12; }
+  .wa-connie-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px; border-radius:10px; border:none; background:#25D366; color:#fff; font-size:15px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:12px; -webkit-tap-highlight-color:transparent; }
+  .wa-connie-btn:active { transform:scale(0.98); }
+  .wa-connie-sub { text-align:center; font-size:11.5px; color:#78350f; margin-top:6px; }
   .bank-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; border-bottom:1px solid rgba(245,158,11,0.2); }
   .bank-row:last-of-type { border-bottom:none; }
   .bank-label { color:#92400e; font-weight:500; font-size:13px; }
@@ -86,8 +105,28 @@
       <input type="text" id="song" placeholder="e.g. Bohemian Rhapsody">
       <label>Version of Song</label>
       <input type="text" id="version" placeholder="e.g. Acoustic, Original, Live">
+      <label>Donation Amount (RM) <span class="req">*</span></label>
+      <input type="text" id="amount" placeholder="e.g. 150" inputmode="decimal" autocomplete="off">
       <label>Time Slot <span class="req">*</span></label>
       <div class="slots" id="slots"></div>
+
+      <div class="rules-card">
+        <div class="rules-title">📋 Event Rules — Please Read</div>
+        <ul class="rules-list">
+          <li>Each card holder may sing <strong>ONE song only</strong></li>
+          <li>Donation amount must match your selected time slot's minimum</li>
+          <li>All collection must be submitted by <strong>8 June 2026</strong></li>
+          <li>No "keying-in", trials or restarts on event day</li>
+          <li>You may bring your own disc</li>
+          <li>Time slot is committed — <strong>please don't miss it</strong></li>
+          <li>Lost cards: minimum penalty <strong>RM 200</strong></li>
+        </ul>
+        <label class="agree-row">
+          <input type="checkbox" id="agree">
+          <span>I agree to abide by the rules and regulations above</span>
+        </label>
+      </div>
+
       <button class="submit-btn" id="submitBtn" disabled>🎶 Register to Sing</button>
     </div>
   </div>
@@ -95,8 +134,8 @@
   <div id="success" class="success-screen">
     <div class="success-card">
       <div class="success-icon">🎉</div>
-      <div class="success-title">Registration Received!</div>
-      <div class="success-sub">Thank you for signing up for Karathon 2026</div>
+      <div class="success-title">Sign Up Successful!</div>
+      <div class="success-sub">Your slot is reserved — please complete payment to confirm</div>
       <div class="detail-box" id="regDetails"></div>
     </div>
 
@@ -104,13 +143,29 @@
       💛 Karathon 2026 is a <strong>charity fundraiser</strong> for<br>Diabetes Malaysia Cawangan Negeri Sarawak.<br>Your participation helps make a difference!
     </div>
 
+    <div class="deadline-banner">
+      ⏰ <strong>All payment must be submitted by 8 June 2026</strong>
+    </div>
+
     <div class="payment-card">
-      <div class="payment-title">💳 Payment Details</div>
-      <div class="payment-sub">Please transfer your participation fee to the account below. Our admin will confirm your registration via WhatsApp.</div>
+      <div class="payment-title">💳 Step 1 — Transfer Payment</div>
+      <div class="payment-sub">Transfer your donation to the bank account below.</div>
       <div class="bank-row"><span class="bank-label">Name</span><span class="bank-val">DIABETES MALAYSIA CAWANGAN NEGERI SARAWAK</span></div>
       <div class="bank-row"><span class="bank-label">Bank</span><span class="bank-val">HONG LEONG BANK</span></div>
       <div class="bank-row"><span class="bank-label">A/C No</span><span class="bank-val">01600203512</span></div>
       <button class="copy-acct-btn" onclick="copyAccount()">📋 Copy Account Number</button>
+
+      <div class="payment-steps">
+        <div class="payment-title" style="font-size:14px; margin-bottom:6px;">📸 Step 2 — Send Payment Proof</div>
+        <ol>
+          <li>Save / screenshot the <strong>payment slip</strong> after transfer</li>
+          <li>Send it via <strong>WhatsApp</strong> to <strong>Mdm Connie Tan</strong> (012-8883778)</li>
+          <li>Our admin will WhatsApp you to confirm your song & time slot ✅</li>
+        </ol>
+      </div>
+
+      <button class="wa-connie-btn" onclick="sendProofToConnie()">💬 Send Payment Proof on WhatsApp</button>
+      <div class="wa-connie-sub">Opens WhatsApp chat with Mdm Connie Tan</div>
     </div>
 
     <button class="new-reg-btn" onclick="resetForm()">🎤 Register Another Singer</button>
@@ -142,11 +197,12 @@ const COLLECTION = "registrations";
 const MAX_PER_SLOT = 24;
 
 const SLOTS = [
-  { id: "12-2",  label: "12:00 PM – 2:00 PM" },
-  { id: "2-4",   label: "2:00 PM – 4:00 PM" },
-  { id: "4-6",   label: "4:00 PM – 6:00 PM" },
-  { id: "6-8",   label: "6:00 PM – 8:00 PM" },
-  { id: "8-10",  label: "8:00 PM – 10:00 PM" },
+  { id: "10-12", label: "10:00 AM – 12:00 PM", min: 100  },
+  { id: "12-2",  label: "12:00 PM – 2:00 PM",  min: 150  },
+  { id: "2-4",   label: "2:00 PM – 4:00 PM",   min: 200  },
+  { id: "4-6",   label: "4:00 PM – 6:00 PM",   min: 300  },
+  { id: "6-8",   label: "6:00 PM – 8:00 PM",   min: 500  },
+  { id: "8-10",  label: "8:00 PM – 10:00 PM",  min: 1000 },
 ];
 
 let selectedSlot = null;
@@ -173,21 +229,30 @@ function renderSlots() {
     btn.className = "slot-btn" + (full ? " full" : "") + (selectedSlot === slot.id ? " selected" : "");
     const statusClass = full ? "full" : left <= 5 ? "low" : "open";
     const statusText = full ? "FULL" : `${left} spots left`;
-    btn.innerHTML = `<span class="slot-time">${slot.label}</span><span class="slot-count ${statusClass}">${statusText}</span>`;
+    btn.innerHTML = `<div class="slot-info"><span class="slot-time">${slot.label}</span><span class="slot-min">Min donation: RM ${slot.min}</span></div><span class="slot-count ${statusClass}">${statusText}</span>`;
     if (!full) btn.addEventListener("click", () => { selectedSlot = slot.id; renderSlots(); checkForm(); });
     container.appendChild(btn);
   });
+}
+
+function parseAmount(v) {
+  const n = parseFloat(String(v).replace(/[^0-9.]/g, ""));
+  return isNaN(n) ? 0 : n;
 }
 
 function checkForm() {
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const song = document.getElementById("song").value.trim();
-  document.getElementById("submitBtn").disabled = !(name && phone && song && selectedSlot);
+  const amount = parseAmount(document.getElementById("amount").value);
+  const agree = document.getElementById("agree").checked;
+  document.getElementById("submitBtn").disabled = !(name && phone && song && amount > 0 && selectedSlot && agree);
 }
 document.getElementById("name").addEventListener("input", checkForm);
 document.getElementById("phone").addEventListener("input", checkForm);
 document.getElementById("song").addEventListener("input", checkForm);
+document.getElementById("amount").addEventListener("input", checkForm);
+document.getElementById("agree").addEventListener("change", checkForm);
 
 document.getElementById("submitBtn").addEventListener("click", async () => {
   const btn = document.getElementById("submitBtn");
@@ -195,7 +260,15 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
   const phone = document.getElementById("phone").value.trim();
   const song = document.getElementById("song").value.trim();
   const version = document.getElementById("version").value.trim();
-  if (!name || !phone || !song || !selectedSlot) return;
+  const amount = parseAmount(document.getElementById("amount").value);
+  const agree = document.getElementById("agree").checked;
+  if (!name || !phone || !song || !selectedSlot || !amount || !agree) return;
+
+  const slotDef = SLOTS.find(s => s.id === selectedSlot);
+  if (amount < slotDef.min) {
+    showToast(`This time slot requires a minimum donation of RM ${slotDef.min}.`, true);
+    return;
+  }
   if ((slotCounts[selectedSlot] || 0) >= MAX_PER_SLOT) {
     showToast("This slot just filled up! Please pick another.", true);
     selectedSlot = null; renderSlots(); return;
@@ -205,9 +278,9 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     const slotSnap = await db.collection(COLLECTION).where("slot", "==", selectedSlot).get();
     let maxOrder = -1;
     slotSnap.forEach(d => { const o = d.data().order; if (typeof o === "number" && o > maxOrder) maxOrder = o; });
-    const slotLabel = SLOTS.find(s => s.id === selectedSlot).label;
+    const slotLabel = slotDef.label;
     await db.collection(COLLECTION).add({
-      name, phone, song, version, slot: selectedSlot,
+      name, phone, song, version, amount, slot: selectedSlot,
       order: maxOrder + 1,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -216,13 +289,16 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
       `<div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${esc(name)}</span></div>` +
       `<div class="detail-row"><span class="detail-label">Telephone</span><span class="detail-value">${esc(phone)}</span></div>` +
       `<div class="detail-row"><span class="detail-label">Song</span><span class="detail-value">${esc(song)}${version ? ' (' + esc(version) + ')' : ''}</span></div>` +
-      `<div class="detail-row"><span class="detail-label">Time Slot</span><span class="detail-value">${slotLabel}</span></div>`;
+      `<div class="detail-row"><span class="detail-label">Time Slot</span><span class="detail-value">${slotLabel}</span></div>` +
+      `<div class="detail-row"><span class="detail-label">Donation</span><span class="detail-value">RM ${amount.toFixed(2)}</span></div>`;
     document.getElementById("app").style.display = "none";
     document.getElementById("success").style.display = "block";
     document.getElementById("name").value = "";
     document.getElementById("phone").value = "";
     document.getElementById("song").value = "";
     document.getElementById("version").value = "";
+    document.getElementById("amount").value = "";
+    document.getElementById("agree").checked = false;
     selectedSlot = null;
   } catch (err) {
     showToast("Something went wrong. Please try again.", true);
@@ -243,6 +319,13 @@ function copyAccount() {
   navigator.clipboard.writeText("01600203512").then(() => {
     showToast("📋 Account number copied!");
   }).catch(() => {});
+}
+
+function sendProofToConnie() {
+  // Connie Tan: 012-8883778 → 60128883778
+  const phone = "60128883778";
+  const msg = "Hi Mdm Connie Tan, here is my payment proof for *Karathon 2026*. Thank you! 🎤💛";
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 function resetForm() {
